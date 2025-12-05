@@ -1,0 +1,27 @@
+name: api_client
+description: "BentoLabs's package for the app's API connections"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.6.0 <5.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dio: ^5.8.0+1
+  jwt_decoder: ^2.0.1
+  uuid: ^4.5.1
+  get_it: ^9.0.5 
+  auth0_flutter: ^1.14.0
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
+  path_provider: ^2.1.5
+
+dev_dependencies:
+  very_good_analysis: ^10.0.0
+  isar_generator: ^3.1.0+1
+  build_runner: ^2.4.13
+
+flutter:
+  generate: true

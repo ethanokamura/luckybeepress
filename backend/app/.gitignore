@@ -1,0 +1,6 @@
+.vscode/
+*.log
+_build/
+node_modules/
+bento_labs-adminsdk.json
+deno.lock

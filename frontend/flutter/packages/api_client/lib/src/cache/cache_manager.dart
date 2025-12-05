@@ -1,0 +1,112 @@
+import 'package:flutter/foundation.dart';
+import 'package:isar/isar.dart';
+import 'package:path_provider/path_provider.dart';
+import 'models/cached_http_response.dart';
+
+class CacheManager {
+  late final Isar _isar;
+
+  Future<void> init() async {
+    try {
+      final dir = await getApplicationSupportDirectory();
+      _isar = await Isar.open(
+        [CachedHttpResponseSchema],
+        directory: dir.path,
+        inspector: false,
+      );
+    } catch (e) {
+      // Fallback to current directory or a default path
+      _isar = await Isar.open(
+        [CachedHttpResponseSchema],
+        directory: '.',
+        inspector: false,
+      );
+    }
+  }
+
+  // --- Configuration for Cache Durations ---
+  /// Default duration for HTTP response caches.
+  static const Duration _defaultHttpCacheExpiration = Duration(hours: 1);
+
+  /// Stores an HTTP response in the cache.
+  /// [key]: The unique identifier for the cached response (e.g., API endpoint URL).
+  /// [responseBody]: The JSON string representation of the HTTP response.
+  /// [cacheDuration]: Optional. Overrides the default HTTP cache duration for this specific entry.
+  Future<void> cacheHttpResponse({
+    required String key,
+    required String responseBody,
+    Duration? cacheDuration,
+  }) async {
+    await _isar.writeTxn(() async {
+      final cachedEntry = CachedHttpResponse.fromResponse(
+        key: key,
+        responseBody: responseBody,
+        cacheDuration: cacheDuration ?? _defaultHttpCacheExpiration,
+      );
+      await _isar.cachedHttpResponses.put(cachedEntry);
+    });
+  }
+
+  /// Retrieves a cached HTTP response by key.
+  /// Returns the data string if found and not expired, otherwise null.
+  Future<String?> getCachedHttpResponse(String key) async {
+    final entry =
+        await _isar.cachedHttpResponses.filter().keyEqualTo(key).findFirst();
+
+    if (entry != null) {
+      final now = DateTime.now().toUtc();
+      if (entry.expiresAt == null || entry.expiresAt!.isAfter(now)) {
+        return entry.data;
+      } else {
+        await _isar.writeTxn(() async {
+          await _isar.cachedHttpResponses
+              .delete(entry.id); // Delete expired entry
+        });
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /// Deletes a specific cached HTTP response by key.
+  /// Useful for invalidating cache after CUD operations (Create, Update, Delete) on the server.
+  Future<void> deleteCachedHttpResponse(String key) async {
+    await _isar.writeTxn(() async {
+      await _isar.cachedHttpResponses.filter().keyEqualTo(key).deleteAll();
+    });
+  }
+
+  /// Performs cleanup on the CachedHttpResponse collection.
+  /// It removes entries older than their configured HTTP cache duration or past their explicit `expiresAt`.
+  /// This should ideally be called periodically (e.g., app start, background fetch).
+  Future<void> cleanupAllCaches() async {
+    final httpThreshold =
+        DateTime.now().toUtc().subtract(_defaultHttpCacheExpiration);
+
+    try {
+      await _isar.writeTxn(() async {
+        // final httpCacheCount =
+        await _isar.cachedHttpResponses
+            .filter()
+            .cachedAtLessThan(httpThreshold)
+            .or()
+            .expiresAtLessThan(DateTime.now().toUtc())
+            .deleteAll();
+      });
+    } catch (e) {
+      debugPrint('CacheManager: Error during overall cache cleanup: $e');
+    }
+  }
+
+  /// Clears ALL data from ALL Isar collections. Use with extreme caution!
+  /// In your case, this will only clear the CachedHttpResponse collection.
+  Future<void> clearAllData() async {
+    try {
+      await _isar.writeTxn(() async {
+        await _isar.cachedHttpResponses.clear();
+      });
+    } catch (e) {
+      debugPrint('CacheManager: Error clearing all Isar data: $e');
+    }
+  }
+}
