@@ -1,5 +1,5 @@
 import { Pool } from "@db/postgres";
-import { QueryParams } from "../../types/queries.ts";
+import { QueryParams } from "../types/queries.ts";
 
 const DATABASE_URL = Deno.env.get("DATABASE_URL");
 

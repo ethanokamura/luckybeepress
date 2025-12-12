@@ -1,94 +1,278 @@
 @import "tailwindcss";
-
-:root {
-  /* Base Colors - Warm neutrals for professional B2B aesthetic */
-  --color-base-100: #F7F5F3; /* Lightest background */
-  --color-base-200: #F3EDE9; /* Secondary background */
-  --color-base-300: #E2DDD9; /* Borders, dividers */
-  --color-base-content: #4B4743; /* Primary text */
-  
-  /* Brand Colors - Warm honey tones for artisan letterpress business */
-  --color-primary: #FFC72C; /* Main CTA buttons */
-  --color-secondary: #F2A900; /* Accents */
-  
-  /* Neutral Colors - Dark elements */
-  --color-neutral: #161616; /* Dark text/elements */
-  --color-neutral-content: #756f6a; /* Muted text */
-  
-  /* Status Colors */
-  --color-info: #78C8FF; /* Informational */
-  --color-success: #AFD89E; /* Success states */
-  --color-warning: #EFC375; /* Warnings */
-  --color-error: #FF7878; /* Errors */
+@plugin "daisyui" {
+  themes: "light" --default, "dark" --prefersdark;
 }
 
-@theme inline {
-  --font-sans: var(--font-poppins-mono);
-  --font-serif: var(--font-outfit-mono);
+@plugin "daisyui/theme" {
+  name: "light";
+  default: true;
+  color-scheme: light;
+  /* Primary Base */
+  --color-base-100: #FAFAF9; /* Your Background */
+  --color-base-200: #F5F5F4; /* Primary Surface */
+  --color-base-300: #E7E5E4; /* Dividers / Borders etc */
+  --color-base-content: #1C1917; /* Primary Text Color */
+  /* Accents & Brand */
+  --color-primary: #F2A900; /* Main Brand (Your Base 100) */
+  --color-primary-content: #000000;
+  --color-secondary: #1C1917; /* Complementary Purple */
+  --color-secondary-content: #FAFAF9;
+  --color-accent: #FFC72C; /* Your Accent Color */
+  --color-accent-content: #1F1A00;
+  /* Neutrals */
+  --color-neutral: #44403C; /* Neutral Brand Color */
+  --color-neutral-content: #FAFAF9; /* Neutral Text Color */
+  /* System/Feedback */
+  --color-info: #0EA5E9;
+  --color-info-content: #F0F9FF;
+  --color-success: #16A34A;
+  --color-success-content: #F0FDF4;
+  --color-warning: #F2A900; /* Uses the Primary Brand Color */
+  --color-warning-content: #000000;
+  --color-error: #DC2626;
+  --color-error-content: #FEF2F2;
+  --radius-selector: 2rem;
+  --radius-field: 0.5rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
 }
 
-/* Hide scrollbar for all elements */
-*::-webkit-scrollbar {
-  display: none;
+@plugin "daisyui/theme" {
+  name: "dark";
+  color-scheme: dark;
+  --color-base-100: #18181B;
+  --color-base-200: #09090B;
+  --color-base-300: #27272A;
+  --color-base-content: #FAFAFA;
+  --color-primary: #14B8A6;
+  --color-primary-content: #042F2E;
+  --color-secondary: #A78BFA;
+  --color-secondary-content: #1E1B4B;
+  --color-accent: #FB923C;
+  --color-accent-content: #431407;
+  --color-neutral: #3F3F46;
+  --color-neutral-content: #FAFAFA;
+  --color-info: #38BDF8;
+  --color-info-content: #082F49;
+  --color-success: #4ADE80;
+  --color-success-content: #052E16;
+  --color-warning: #FBBF24;
+  --color-warning-content: #422006;
+  --color-error: #F87171;
+  --color-error-content: #450A0A;
+  --radius-selector: 1rem;
+  --radius-field: 0.5rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
 }
 
-/* Hide scrollbar for Firefox */
-* {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
+@layer base {
+  /* Custom font family */
+  :root {
+    --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+    --font-heading: var(--font-space-grotesk), system-ui, sans-serif;
+  }
 
-*:focus {
-  outline: none;
-  box-sizing: border-box;
-}
+  /* Hide scrollbar for all elements */
+  *::-webkit-scrollbar {
+    display: none;
+  }
 
-body {
-  background: var(--color-base-200);
-  color: var(--color-base-content);
-  font-family: var(--font-poppins-mono), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  margin: 0;
-  padding: 0;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  /* Hide scrollbar for Firefox */
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
 
-main {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-  padding-top: 7rem;
-}
+  *:focus {
+    outline: none;
+  }
 
+  *:focus-visible {
+    outline: 2px solid oklch(var(--color-primary) / 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 
-@media (max-width: 768px) {
-  main {
-    padding: 1.5rem 1rem;
-    padding-top: 6rem;
+  /* Removed default main styling to allow page-specific layouts */
+
+  html {
+    background-color: var(--color-base-200);
+    padding: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-base-200);
+    color: var(--color-base-content);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    padding: 0;
+    margin: 0;
+    overflow-x: hidden;
+    width: 100vw;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
   }
 }
 
-/* Utility classes for custom colors */
-.bg-base-100 { background-color: var(--color-base-100); }
-.bg-base-200 { background-color: var(--color-base-200); }
-.bg-base-300 { background-color: var(--color-base-300); }
-.bg-primary { background-color: var(--color-primary); }
-.bg-secondary { background-color: var(--color-secondary); }
-.bg-neutral { background-color: var(--color-neutral); }
-.bg-success { background-color: var(--color-success); }
-.bg-warning { background-color: var(--color-warning); }
-.bg-error { background-color: var(--color-error); }
-.bg-info { background-color: var(--color-info); }
+@layer utilities {
+  /* Animation utilities */
+  .animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
 
-.text-base-content { color: var(--color-base-content); }
-.text-neutral-content { color: var(--color-neutral-content); }
-.text-primary { color: var(--color-primary); }
-.text-secondary { color: var(--color-secondary); }
-.text-neutral { color: var(--color-neutral); }
-.text-success { color: var(--color-success); }
-.text-warning { color: var(--color-warning); }
-.text-error { color: var(--color-error); }
-.text-info { color: var(--color-info); }
+  .animate-slide-out {
+    animation: slideOut 0.2s ease-in;
+  }
 
-.border-base-300 { border-color: var(--color-base-300); }
-.border-primary { border-color: var(--color-primary); }
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+
+  .animate-bounce-in {
+    animation: bounceIn 0.5s ease-out;
+  }
+
+  /* Stagger animation delays */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+
+  /* Scrollbar hide utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Smooth transitions for interactive elements */
+@layer components {
+  .btn-transition {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  .link-hover {
+    @apply transition-colors duration-200;
+  }
+}
+
+/* Chart tooltip styles */
+.recharts-tooltip-wrapper {
+  outline: none !important;
+}
+
+.recharts-default-tooltip {
+  background-color: var(--color-base-100) !important;
+  border: 1px solid var(--color-base-300) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Custom scrollbar for larger screens (optional reveal) */
+@media (min-width: 1024px) {
+  .scrollbar-show::-webkit-scrollbar {
+    display: block;
+    width: 6px;
+  }
+
+  .scrollbar-show::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-show::-webkit-scrollbar-thumb {
+    background-color: var(--color-base-300);
+    border-radius: 3px;
+  }
+
+  .scrollbar-show::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-base-content);
+  }
+}

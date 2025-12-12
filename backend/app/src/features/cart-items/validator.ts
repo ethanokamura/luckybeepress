@@ -1,16 +1,13 @@
 import { z } from "zod";
 import {
   cartItemsSortColumns,
-} from "./services/columns.ts";
+} from "./columns.ts";
 
 const base = z.object({
-  id: z.uuid().optional(),
-  cart_id: z.uuid().optional(),
-  product_id: z.uuid().optional(),
+  cart_id: z.string().optional(),
+  product_id: z.string().optional(),
   quantity: z.coerce.number().optional(),
   unit_price: z.coerce.number().optional(),
-  created_at: z.coerce.date().optional(),
-  updated_at: z.coerce.date().optional(),
 });
 
 export const cartItemsValidator = {

@@ -12,6 +12,13 @@ productsRouter.post(
   controller.createProducts
 );
 
+// fetch a list of Categories
+productsRouter.get(
+  "/categories",
+  validator.query(productsValidator.query),
+  controller.findCategories
+);
+
 // fetch a list of Products
 productsRouter.get(
   "/",

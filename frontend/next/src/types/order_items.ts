@@ -5,6 +5,7 @@ export interface OrderItems {
   sku: string;
   product_name: string;
   quantity: number;
+  variant: string;
   unit_wholesale_price: number;
   unit_retail_price: number | null;
   subtotal: number;

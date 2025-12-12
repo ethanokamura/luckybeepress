@@ -14,7 +14,7 @@ export default function LoginButton() {
 
   if (user) {
     return (
-      <Link href={`/account`}>
+      <Link href={`/dashboard`}>
         <Image
           className="rounded-full"
           src={user?.picture ?? "/logo.svg"}

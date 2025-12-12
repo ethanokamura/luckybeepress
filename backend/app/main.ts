@@ -2,13 +2,14 @@ import { Hono, Context } from "hono";
 import { cors } from "hono/cors";
 import { Auth0Exception } from "@auth0/auth0-hono";
 import { requiresAuth } from "./src/middleware/auth.ts";
-import { customersRouter} from "./src/features/customers/router.ts";
-import { addressesRouter} from "./src/features/addresses/router.ts";
-import { productsRouter} from "./src/features/products/router.ts";
-import { cartsRouter} from "./src/features/carts/router.ts";
-import { cartItemsRouter} from "./src/features/cart-items/router.ts";
-import { ordersRouter} from "./src/features/orders/router.ts";
-import { orderItemsRouter} from "./src/features/order-items/router.ts";
+import { customersRouter } from "./src/features/customers/router.ts";
+import { addressesRouter } from "./src/features/addresses/router.ts";
+import { productsRouter } from "./src/features/products/router.ts";
+import { cartsRouter } from "./src/features/carts/router.ts";
+import { cartItemsRouter } from "./src/features/cart-items/router.ts";
+import { ordersRouter } from "./src/features/orders/router.ts";
+import { orderItemsRouter } from "./src/features/order-items/router.ts";
+import { ZodError } from "zod";
 
 const app = new Hono();
 const apiVersion = Deno.env.get("API_VERSION") || "v0";
@@ -37,7 +38,7 @@ app.use(`/${apiVersion}/order-items/*`, requiresAuth);
 app.route(`/${apiVersion}/order-items`, orderItemsRouter);
 
 // Errors
-app.onError((err: any, c: Context) => {
+app.onError((err: Error, c: Context) => {
   console.error("❌ Hono error:", err);
   console.error("Stack:", err.stack);
   if (err instanceof Auth0Exception) {
@@ -50,25 +51,14 @@ app.onError((err: any, c: Context) => {
     );
   }
   // Handle specific error types
-  if (err.type === "entity.parse.failed") {
+  if (err instanceof ZodError) {
     // JSON parsing error
     return c.json(
       {
-        error: "Invalid JSON in request body",
+        error: "Validation Error",
         message: err.message,
       },
       400
-    );
-  }
-
-  if (err.type === "entity.too.large") {
-    // Payload too large
-    return c.json(
-      {
-        error: "Request payload too large",
-        message: err.message,
-      },
-      413
     );
   }
 

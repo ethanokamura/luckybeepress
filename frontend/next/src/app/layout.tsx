@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
 import { Auth0Provider } from "@auth0/nextjs-auth0";
 import { Poppins, Outfit } from "next/font/google";
-import { Navigation, Footer } from "@/components/layout";
-import { CartProvider } from "@/lib/cart-context";
-import "@/app/globals.css";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import { DrawerProvider } from "@/providers/DrawerProvider";
-import Drawer from "@/components/layout/Drawer";
+import { ToastProvider } from "@/providers/ToastProvider";
+import { CartProvider } from "@/providers/CartProvider";
+import AppBar from "@/components/AppBar";
+import AppDrawer from "@/components/AppDrawer";
+import { CartDrawer } from "@/components/cart/CartDrawer";
+import Footer from "@/components/Footer";
+import * as config from "@/lib/constants";
+import "./globals.css";
 
 const poppinsMono = Poppins({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -19,9 +24,8 @@ const outfitMono = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Lucky Bee Press - Wholesale Letterpress Cards",
-  description:
-    "Premium letterpress greeting cards for independent retailers. Handcrafted with care, designed to delight your customers.",
+  title: config.title,
+  description: config.description,
 };
 
 export default function RootLayout({
@@ -30,19 +34,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning={true}>
+    <html lang="en" suppressHydrationWarning={true} data-lt-installed="true">
       <body
-        className={`${poppinsMono.variable} ${outfitMono.variable} antialiased min-h-screen flex flex-col`}
+        className={`${poppinsMono.variable} ${outfitMono.variable} antialiased`}
       >
         <Auth0Provider>
-          <CartProvider>
+          <ThemeProvider>
             <DrawerProvider>
-              <Drawer />
-              <Navigation />
-              <div className="flex-1">{children}</div>
-              <Footer />
+              <ToastProvider>
+                <CartProvider>
+                  <div className="flex flex-col min-h-screen">
+                    <AppBar />
+                    <AppDrawer />
+                    <CartDrawer />
+                    <div className="flex-1 pt-[73px]">{children}</div>
+                    <Footer />
+                  </div>
+                </CartProvider>
+              </ToastProvider>
             </DrawerProvider>
-          </CartProvider>
+          </ThemeProvider>
         </Auth0Provider>
       </body>
     </html>

@@ -1,0 +1,22 @@
+{
+  "imports": {
+    "@db/postgres": "jsr:@db/postgres@^0.19.5",
+    "@auth0/auth0-hono": "npm:@auth0/auth0-hono",
+    "hono": "jsr:@hono/hono@^4.9.9",
+    "zod": "npm:zod@^4.1.11"
+  },
+  "unstable": ["cron"],
+  "tasks": {
+    "check": "deno fmt --check && deno lint",
+    "fix": "deno fmt && deno lint",
+    "dev": "deno task fix && deno run --allow-net --allow-env --allow-read --watch server.ts",
+    "start": "deno run --allow-net --allow-env --allow-read server.ts",
+    "token": "deno run --allow-net --allow-env --allow-read token.ts",
+    "test": "deno test --allow-net --allow-env --allow-read"
+  },
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "hono/jsx"
+  },
+  "nodeModulesDir": "auto"
+}

@@ -82,7 +82,7 @@ export async function getCartItems(
   id: string
 ): Promise<ActionResponse<CartItems>> {
   try {
-    if (!id || !z.uuid().safeParse(id).success) {
+    if (!id || !z.string().uuid().safeParse(id).success) {
       return {
         success: false,
         error: `Invalid ${resource} ID`,
@@ -107,7 +107,7 @@ export async function updateCartItems(
   input: UpdateCartItemsInput
 ): Promise<ActionResponse<CartItems>> {
   try {
-    if (!id || !z.uuid().safeParse(id).success) {
+    if (!id || !z.string().uuid().safeParse(id).success) {
       return {
         success: false,
         error: `Invalid ${resource} ID`,
@@ -145,7 +145,7 @@ export async function deleteCartItems(
   id: string
 ): Promise<ActionResponse<void>> {
   try {
-    if (!id || !z.uuid().safeParse(id).success) {
+    if (!id || !z.string().uuid().safeParse(id).success) {
       return {
         success: false,
         error: `Invalid ${resource} ID`,

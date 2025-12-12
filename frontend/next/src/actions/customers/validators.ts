@@ -19,7 +19,7 @@ export const customersSortColumns = [
 ] as const;
 
 const base = z.object({
-  id: z.uuid().optional(),
+  id: z.string().uuid().optional(),
   business_name: z.string().optional(),
   contact_name: z.string().optional(),
   email: z.string().optional(),

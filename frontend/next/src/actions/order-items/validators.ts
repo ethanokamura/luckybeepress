@@ -16,9 +16,9 @@ export const orderItemsSortColumns = [
 ] as const;
 
 const base = z.object({
-  id: z.uuid().optional(),
-  order_id: z.uuid().optional(),
-  product_id: z.uuid().optional(),
+  id: z.string().uuid().optional(),
+  order_id: z.string().uuid().optional(),
+  product_id: z.string().uuid().optional(),
   sku: z.string().optional(),
   product_name: z.string().optional(),
   quantity: z.coerce.number().optional(),

@@ -1,4 +1,4 @@
-import { QueryParams } from "../../types/queries.ts";
+import { QueryParams } from "../types/queries.ts";
 import { query } from "../db/pool.ts";
 
 interface PaginationTypes {

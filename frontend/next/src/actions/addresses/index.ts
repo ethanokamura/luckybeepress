@@ -82,7 +82,7 @@ export async function getAddresses(
   id: string
 ): Promise<ActionResponse<Addresses>> {
   try {
-    if (!id || !z.uuid().safeParse(id).success) {
+    if (!id || !z.string().uuid().safeParse(id).success) {
       return {
         success: false,
         error: `Invalid ${resource} ID`,
@@ -107,7 +107,7 @@ export async function updateAddresses(
   input: UpdateAddressesInput
 ): Promise<ActionResponse<Addresses>> {
   try {
-    if (!id || !z.uuid().safeParse(id).success) {
+    if (!id || !z.string().uuid().safeParse(id).success) {
       return {
         success: false,
         error: `Invalid ${resource} ID`,
@@ -145,7 +145,7 @@ export async function deleteAddresses(
   id: string
 ): Promise<ActionResponse<void>> {
   try {
-    if (!id || !z.uuid().safeParse(id).success) {
+    if (!id || !z.string().uuid().safeParse(id).success) {
       return {
         success: false,
         error: `Invalid ${resource} ID`,

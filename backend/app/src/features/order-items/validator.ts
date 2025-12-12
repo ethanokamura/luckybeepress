@@ -1,12 +1,11 @@
 import { z } from "zod";
 import {
   orderItemsSortColumns,
-} from "./services/columns.ts";
+} from "./columns.ts";
 
 const base = z.object({
-  id: z.uuid().optional(),
-  order_id: z.uuid().optional(),
-  product_id: z.uuid().optional(),
+  order_id: z.string().optional(),
+  product_id: z.string().optional(),
   sku: z.string().optional(),
   product_name: z.string().optional(),
   quantity: z.coerce.number().optional(),
@@ -14,8 +13,6 @@ const base = z.object({
   unit_retail_price: z.coerce.number().optional(),
   subtotal: z.coerce.number().optional(),
   status: z.string().optional(),
-  created_at: z.coerce.date().optional(),
-  updated_at: z.coerce.date().optional(),
 });
 
 export const orderItemsValidator = {

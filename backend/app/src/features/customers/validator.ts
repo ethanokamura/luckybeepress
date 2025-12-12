@@ -1,10 +1,9 @@
 import { z } from "zod";
 import {
   customersSortColumns,
-} from "./services/columns.ts";
+} from "./columns.ts";
 
 const base = z.object({
-  id: z.uuid().optional(),
   business_name: z.string().optional(),
   contact_name: z.string().optional(),
   email: z.string().optional(),
@@ -17,8 +16,6 @@ const base = z.object({
   total_orders: z.coerce.number().optional(),
   lifetime_value: z.coerce.number().optional(),
   notes: z.string().optional(),
-  created_at: z.coerce.date().optional(),
-  updated_at: z.coerce.date().optional(),
 });
 
 export const customersValidator = {

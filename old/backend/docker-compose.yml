@@ -1,0 +1,41 @@
+services:
+  deno-app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: deno-backend
+    volumes:
+      - ./app:/app
+      - deno-cache:/deno-dir
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=${PORT}
+      - DENO_ENV=${DENO_ENV}
+      - API_VERSION=${API_VERSION}
+      - HOSTNAME=${HOSTNAME}
+      - AUTH0_DOMAIN=${AUTH0_DOMAIN}
+      - AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}
+      - AUTH0_CLIENT_SECRET=${AUTH0_CLIENT_SECRET}
+      - AUTH0_SESSION_ENCRYPTION_KEY=${AUTH0_SESSION_ENCRYPTION_KEY}
+      - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+      - DATABASE_URL=${DATABASE_URL}
+    command: >
+      deno run
+      --allow-net
+      --allow-env
+      --allow-read
+      --allow-sys
+      --unstable-node-globals
+      server.ts
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4GB
+        reservations:
+          cpus: '1'
+          memory: 2GB
+volumes:
+  deno-cache:

@@ -4,7 +4,6 @@ export const addressesSortColumns = [
   "id",
   "customer_id",
   "address_type",
-  "is_default",
   "company_name",
   "street_address_1",
   "street_address_2",
@@ -17,8 +16,8 @@ export const addressesSortColumns = [
 ] as const;
 
 const base = z.object({
-  id: z.uuid().optional(),
-  customer_id: z.uuid().optional(),
+  id: z.string().uuid().optional(),
+  customer_id: z.string().uuid().optional(),
   address_type: z.string().optional(),
   is_default: z.boolean().optional(),
   company_name: z.string().optional(),

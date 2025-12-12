@@ -9,7 +9,6 @@ export const productsSortColumns = [
   "wholesale_price",
   "suggested_retail_price",
   "cost",
-  "is_active",
   "minimum_order_quantity",
   "stock_quantity",
   "low_stock_threshold",
@@ -20,7 +19,7 @@ export const productsSortColumns = [
 ] as const;
 
 const base = z.object({
-  id: z.uuid().optional(),
+  id: z.string().uuid().optional(),
   sku: z.string().optional(),
   name: z.string().optional(),
   description: z.string().optional(),
@@ -30,6 +29,7 @@ const base = z.object({
   cost: z.coerce.number().optional(),
   is_active: z.boolean().optional(),
   minimum_order_quantity: z.coerce.number().optional(),
+  has_box: z.boolean().optional(),
   stock_quantity: z.coerce.number().optional(),
   low_stock_threshold: z.coerce.number().optional(),
   image_url: z.string().optional(),

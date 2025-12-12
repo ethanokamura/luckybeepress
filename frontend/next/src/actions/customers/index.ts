@@ -82,7 +82,7 @@ export async function getCustomers(
   id: string
 ): Promise<ActionResponse<Customers>> {
   try {
-    if (!id || !z.uuid().safeParse(id).success) {
+    if (!id || !z.string().uuid().safeParse(id).success) {
       return {
         success: false,
         error: `Invalid ${resource} ID`,
@@ -107,7 +107,7 @@ export async function updateCustomers(
   input: UpdateCustomersInput
 ): Promise<ActionResponse<Customers>> {
   try {
-    if (!id || !z.uuid().safeParse(id).success) {
+    if (!id || !z.string().uuid().safeParse(id).success) {
       return {
         success: false,
         error: `Invalid ${resource} ID`,
@@ -145,7 +145,7 @@ export async function deleteCustomers(
   id: string
 ): Promise<ActionResponse<void>> {
   try {
-    if (!id || !z.uuid().safeParse(id).success) {
+    if (!id || !z.string().uuid().safeParse(id).success) {
       return {
         success: false,
         error: `Invalid ${resource} ID`,

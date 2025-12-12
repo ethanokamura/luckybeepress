@@ -1,590 +1,307 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { useCart } from "@/lib/cart-context";
-import {
-  Button,
-  Card,
-  CardContent,
-  Input,
-  Select,
-  Loading,
-  Badge,
-} from "@/components/ui";
-import { formatCurrency } from "@/lib/mock-data";
-import { FiCheck, FiAlertCircle } from "react-icons/fi";
+import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { CheckoutStepper, MobileStepper } from "@/components/checkout/CheckoutStepper";
+import { AddressSelector } from "@/components/checkout/AddressSelector";
+import { PaymentSelector } from "@/components/checkout/PaymentSelector";
+import { OrderReview } from "@/components/checkout/OrderReview";
+import { CartSummary } from "@/components/cart/CartSummary";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { useCartContext } from "@/providers/CartProvider";
+import { useCustomer } from "@/hooks/useCustomer";
+import { useAddresses } from "@/hooks/useAddresses";
+import { useCreateOrder } from "@/hooks/useOrders";
+import type { PaymentMethod } from "@/lib/constants";
+import { PAYMENT_METHOD } from "@/lib/constants";
 
-type Step = "shipping" | "payment" | "review";
+const CHECKOUT_STEPS = [
+  { id: "shipping", label: "Shipping" },
+  { id: "payment", label: "Payment" },
+  { id: "review", label: "Review" },
+];
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user, isLoading: userLoading } = useUser();
-  const { items, getTotalPrice, getTotalItems, clearCart } = useCart();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [shippingAddressId, setShippingAddressId] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [selectedShipping, setSelectedShipping] = useState<string>("standard");
 
-  const [currentStep, setCurrentStep] = useState<Step>("shipping");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    customerId,
+    items,
+    totals,
+    shippingEstimates,
+    loading: cartLoading,
+    canCheckout,
+    clearCart,
+  } = useCartContext();
 
-  // Shipping form
-  const [shippingForm, setShippingForm] = useState({
-    companyName: "",
-    contactName: "",
-    address1: "",
-    address2: "",
-    city: "",
-    state: "",
-    postalCode: "",
-    country: "USA",
-    phone: "",
+  const { customer, loading: customerLoading } = useCustomer({
+    customerId,
   });
 
-  // Payment form
-  const [paymentForm, setPaymentForm] = useState({
-    method: "net30",
-    poNumber: "",
-    notes: "",
+  const {
+    shippingAddresses,
+    defaultShippingAddress,
+    loading: addressesLoading,
+  } = useAddresses({
+    customerId,
   });
 
-  const [useSameForBilling, setUseSameForBilling] = useState(true);
+  const { createOrder, loading: orderLoading, error: orderError } = useCreateOrder();
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!userLoading && !user) {
-      router.push("/api/auth/login");
+  // Set default shipping address when loaded
+  useMemo(() => {
+    if (!shippingAddressId && defaultShippingAddress?.id) {
+      setShippingAddressId(defaultShippingAddress.id);
     }
-  }, [user, userLoading, router]);
+  }, [defaultShippingAddress, shippingAddressId]);
 
-  // Redirect to cart if empty
-  useEffect(() => {
-    if (!userLoading && items.length === 0) {
-      router.push("/cart");
+  // Get selected address object
+  const selectedShippingAddress = useMemo(
+    () => shippingAddresses.find((a) => a.id === shippingAddressId) || null,
+    [shippingAddresses, shippingAddressId]
+  );
+
+  // Get selected shipping estimate
+  const selectedShippingEstimate = useMemo(
+    () => shippingEstimates.find((e) => e.method === selectedShipping),
+    [shippingEstimates, selectedShipping]
+  );
+
+  const shippingCost = selectedShippingEstimate?.rate || 0;
+  const orderTotal = totals.subtotal + shippingCost;
+
+  const isLoading = cartLoading || customerLoading || addressesLoading;
+
+  // Step validation
+  const canProceed = useMemo(() => {
+    switch (currentStep) {
+      case 0: // Shipping
+        return Boolean(shippingAddressId);
+      case 1: // Payment
+        return Boolean(paymentMethod);
+      case 2: // Review
+        return canCheckout && Boolean(shippingAddressId) && Boolean(paymentMethod);
+      default:
+        return false;
     }
-  }, [items, userLoading, router]);
+  }, [currentStep, shippingAddressId, paymentMethod, canCheckout]);
 
-  if (userLoading) {
-    return <Loading text="Loading checkout..." />;
-  }
-
-  if (!user || items.length === 0) {
-    return null;
-  }
-
-  const subtotal = getTotalPrice();
-  const totalItems = getTotalItems();
-  const shippingCost = subtotal >= 500 ? 0 : 25;
-  const total = subtotal + shippingCost;
-
-  const steps: { key: Step; label: string }[] = [
-    { key: "shipping", label: "Shipping" },
-    { key: "payment", label: "Payment" },
-    { key: "review", label: "Review" },
-  ];
-
-  const currentStepIndex = steps.findIndex((s) => s.key === currentStep);
-
-  const handleShippingSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentStep("payment");
+  const handleNext = () => {
+    if (currentStep < CHECKOUT_STEPS.length - 1) {
+      setCurrentStep((prev) => prev + 1);
+    }
   };
 
-  const handlePaymentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentStep("review");
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep((prev) => prev - 1);
+    }
   };
 
   const handlePlaceOrder = async () => {
-    setIsSubmitting(true);
+    if (!customerId || !selectedShippingAddress || !paymentMethod) {
+      return;
+    }
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Generate order number
+    const orderNumber = `LBP-${Date.now().toString(36).toUpperCase()}`;
 
-    // TODO: Submit order to backend
-    const orderData = {
-      customer: user,
-      items,
-      shipping: shippingForm,
-      payment: paymentForm,
-      totals: {
-        subtotal,
-        shipping: shippingCost,
-        total,
-      },
-    };
+    const order = await createOrder({
+      order_number: orderNumber,
+      customer_id: customerId,
+      shipping_company_name: selectedShippingAddress.company_name || null,
+      shipping_address_1: selectedShippingAddress.street_address_1,
+      shipping_address_2: selectedShippingAddress.street_address_2 || null,
+      shipping_city: selectedShippingAddress.city,
+      shipping_state: selectedShippingAddress.state,
+      shipping_postal_code: selectedShippingAddress.postal_code,
+      shipping_country: selectedShippingAddress.country || "USA",
+      subtotal: totals.subtotal,
+      shipping_cost: shippingCost,
+      total_amount: orderTotal,
+      payment_method: paymentMethod,
+      order_date: new Date(),
+    });
 
-    console.log("Order placed:", orderData);
-
-    // Clear cart and redirect to success page
-    clearCart();
-    router.push("/checkout/success");
+    if (order?.id) {
+      // Clear the cart
+      await clearCart();
+      // Redirect to confirmation
+      router.push(`/checkout/confirmation/${order.id}`);
+    }
   };
 
-  return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-4xl font-bold text-neutral font-serif mb-8">
-        Checkout
-      </h1>
-
-      {/* Progress Steps */}
-      <div className="mb-8">
-        <div className="flex items-center justify-center space-x-4">
-          {steps.map((step, index) => {
-            const isActive = step.key === currentStep;
-            const isCompleted = index < currentStepIndex;
-
-            return (
-              <div key={step.key} className="flex items-center">
-                <div className="flex flex-col items-center">
-                  <div
-                    className={`
-                      w-10 h-10 rounded-full flex items-center justify-center font-semibold
-                      ${
-                        isCompleted
-                          ? "bg-success text-white"
-                          : isActive
-                          ? "bg-primary text-neutral"
-                          : "bg-base-300 text-neutral-content"
-                      }
-                    `}
-                  >
-                    {isCompleted ? <FiCheck /> : index + 1}
-                  </div>
-                  <span
-                    className={`
-                      mt-2 text-sm font-medium
-                      ${isActive ? "text-neutral" : "text-neutral-content"}
-                    `}
-                  >
-                    {step.label}
-                  </span>
-                </div>
-
-                {index < steps.length - 1 && (
-                  <div
-                    className={`
-                      w-16 h-1 mx-4 mb-6
-                      ${index < currentStepIndex ? "bg-success" : "bg-base-300"}
-                    `}
-                  />
-                )}
-              </div>
-            );
-          })}
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-base-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-base-content/60">Loading checkout...</p>
         </div>
-      </div>
+      </main>
+    );
+  }
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-2">
-          {/* Shipping Step */}
-          {currentStep === "shipping" && (
-            <Card>
-              <CardContent>
-                <h2 className="text-2xl font-bold text-neutral mb-6">
-                  Shipping Information
-                </h2>
+  if (!canCheckout || items.length === 0) {
+    return (
+      <main className="min-h-screen bg-base-100">
+        <div className="container mx-auto px-4 py-16 text-center">
+          <h1 className="text-2xl font-bold mb-4">Cannot Proceed to Checkout</h1>
+          <p className="text-base-content/60 mb-8">
+            Your cart is empty or doesn&apos;t meet the minimum order requirement.
+          </p>
+          <Link href="/products">
+            <Button variant="primary">Browse Products</Button>
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
-                <form onSubmit={handleShippingSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      label="Company Name"
-                      className="bg-base-200"
-                      required
-                      fullWidth
-                      value={shippingForm.companyName}
-                      onChange={(e) =>
-                        setShippingForm({
-                          ...shippingForm,
-                          companyName: e.target.value,
-                        })
-                      }
-                    />
+  return (
+    <main className="min-h-screen bg-base-100">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <Link
+            href="/cart"
+            className="inline-flex items-center gap-2 text-sm text-base-content/60 hover:text-primary mb-4"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Cart
+          </Link>
+          <h1 className="text-2xl font-bold">Checkout</h1>
+        </div>
 
-                    <Input
-                      className="bg-base-200"
-                      label="Contact Name"
-                      required
-                      fullWidth
-                      value={shippingForm.contactName}
-                      onChange={(e) =>
-                        setShippingForm({
-                          ...shippingForm,
-                          contactName: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
+        {/* Desktop stepper */}
+        <div className="hidden md:block mb-8">
+          <CheckoutStepper steps={CHECKOUT_STEPS} currentStep={currentStep} />
+        </div>
 
-                  <Input
-                    className="bg-base-200"
-                    label="Address Line 1"
-                    required
-                    fullWidth
-                    value={shippingForm.address1}
-                    onChange={(e) =>
-                      setShippingForm({
-                        ...shippingForm,
-                        address1: e.target.value,
-                      })
-                    }
-                  />
+        {/* Mobile stepper */}
+        <div className="md:hidden mb-6">
+          <MobileStepper
+            currentStep={currentStep}
+            totalSteps={CHECKOUT_STEPS.length}
+            currentLabel={CHECKOUT_STEPS[currentStep].label}
+          />
+        </div>
 
-                  <Input
-                    className="bg-base-200"
-                    label="Address Line 2"
-                    fullWidth
-                    value={shippingForm.address2}
-                    onChange={(e) =>
-                      setShippingForm({
-                        ...shippingForm,
-                        address2: e.target.value,
-                      })
-                    }
-                    helperText="Suite, unit, building, floor, etc."
-                  />
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Input
-                      className="bg-base-200"
-                      label="City"
-                      required
-                      fullWidth
-                      value={shippingForm.city}
-                      onChange={(e) =>
-                        setShippingForm({
-                          ...shippingForm,
-                          city: e.target.value,
-                        })
-                      }
-                    />
-
-                    <Input
-                      className="bg-base-200"
-                      label="State"
-                      required
-                      fullWidth
-                      value={shippingForm.state}
-                      onChange={(e) =>
-                        setShippingForm({
-                          ...shippingForm,
-                          state: e.target.value,
-                        })
-                      }
-                    />
-
-                    <Input
-                      className="bg-base-200"
-                      label="Postal Code"
-                      required
-                      fullWidth
-                      value={shippingForm.postalCode}
-                      onChange={(e) =>
-                        setShippingForm({
-                          ...shippingForm,
-                          postalCode: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Select
-                      label="Country"
-                      required
-                      fullWidth
-                      value={shippingForm.country}
-                      onChange={(e) =>
-                        setShippingForm({
-                          ...shippingForm,
-                          country: e.target.value,
-                        })
-                      }
-                      options={[
-                        { value: "USA", label: "United States" },
-                        { value: "CAN", label: "Canada" },
-                      ]}
-                    />
-
-                    <Input
-                      className="bg-base-200"
-                      label="Phone"
-                      type="tel"
-                      required
-                      fullWidth
-                      value={shippingForm.phone}
-                      onChange={(e) =>
-                        setShippingForm({
-                          ...shippingForm,
-                          phone: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="pt-6 border-t border-base-300">
-                    <Button type="submit" variant="primary" size="lg">
-                      Continue to Payment
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Payment Step */}
-          {currentStep === "payment" && (
-            <Card>
-              <CardContent>
-                <h2 className="text-2xl font-bold text-neutral mb-6">
-                  Payment Terms
-                </h2>
-
-                <form onSubmit={handlePaymentSubmit} className="space-y-4">
-                  <Select
-                    label="Payment Method"
-                    required
-                    fullWidth
-                    value={paymentForm.method}
-                    onChange={(e) =>
-                      setPaymentForm({ ...paymentForm, method: e.target.value })
-                    }
-                    options={[
-                      {
-                        value: "net30",
-                        label: "Net 30 (Payment due in 30 days)",
-                      },
-                      {
-                        value: "net60",
-                        label: "Net 60 (Payment due in 60 days)",
-                      },
-                      {
-                        value: "credit_card",
-                        label: "Credit Card (Coming Soon)",
-                      },
-                    ]}
-                  />
-
-                  <Input
-                    className="bg-base-200"
-                    label="PO Number (Optional)"
-                    fullWidth
-                    value={paymentForm.poNumber}
-                    onChange={(e) =>
-                      setPaymentForm({
-                        ...paymentForm,
-                        poNumber: e.target.value,
-                      })
-                    }
-                    helperText="Your internal purchase order number"
-                  />
-
-                  <Input
-                    className="bg-base-200"
-                    label="Order Notes (Optional)"
-                    fullWidth
-                    value={paymentForm.notes}
-                    onChange={(e) =>
-                      setPaymentForm({ ...paymentForm, notes: e.target.value })
-                    }
-                    helperText="Any special instructions for this order"
-                  />
-
-                  <div className="pt-6 border-t border-base-300 flex gap-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setCurrentStep("shipping")}
-                    >
-                      Back
-                    </Button>
-                    <Button type="submit" variant="primary" size="lg">
-                      Review Order
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Review Step */}
-          {currentStep === "review" && (
-            <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main content */}
+          <div className="lg:col-span-2">
+            {/* Step 1: Shipping */}
+            {currentStep === 0 && customerId && (
               <Card>
+                <CardHeader>
+                  <CardTitle>Shipping Address</CardTitle>
+                </CardHeader>
                 <CardContent>
-                  <h2 className="text-2xl font-bold text-neutral mb-4">
-                    Review Your Order
-                  </h2>
-
-                  {/* Shipping Info */}
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-neutral mb-2">
-                      Shipping Address
-                    </h3>
-                    <div className="text-sm text-base-content">
-                      <p>{shippingForm.companyName}</p>
-                      <p>{shippingForm.contactName}</p>
-                      <p>{shippingForm.address1}</p>
-                      {shippingForm.address2 && <p>{shippingForm.address2}</p>}
-                      <p>
-                        {shippingForm.city}, {shippingForm.state}{" "}
-                        {shippingForm.postalCode}
-                      </p>
-                      <p>{shippingForm.country}</p>
-                      <p>{shippingForm.phone}</p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setCurrentStep("shipping")}
-                      className="mt-2"
-                    >
-                      Edit
-                    </Button>
-                  </div>
-
-                  {/* Payment Info */}
-                  <div className="pt-6 border-t border-base-300">
-                    <h3 className="font-semibold text-neutral mb-2">
-                      Payment Method
-                    </h3>
-                    <div className="text-sm text-base-content">
-                      <p>
-                        {paymentForm.method === "net30"
-                          ? "Net 30 Terms"
-                          : "Net 60 Terms"}
-                      </p>
-                      {paymentForm.poNumber && (
-                        <p>PO #: {paymentForm.poNumber}</p>
-                      )}
-                      {paymentForm.notes && (
-                        <p className="mt-2 text-neutral-content">
-                          Notes: {paymentForm.notes}
-                        </p>
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setCurrentStep("payment")}
-                      className="mt-2"
-                    >
-                      Edit
-                    </Button>
-                  </div>
+                  <AddressSelector
+                    customerId={customerId}
+                    type="shipping"
+                    selectedAddressId={shippingAddressId}
+                    onSelect={setShippingAddressId}
+                  />
                 </CardContent>
               </Card>
+            )}
 
-              {/* Order Items */}
+            {/* Step 2: Payment */}
+            {currentStep === 1 && (
               <Card>
+                <CardHeader>
+                  <CardTitle>Payment Method</CardTitle>
+                </CardHeader>
                 <CardContent>
-                  <h3 className="font-semibold text-neutral mb-4">
-                    Order Items
-                  </h3>
-                  <div className="space-y-3">
-                    {items.map((item) => (
-                      <div
-                        key={item.product.id}
-                        className="flex justify-between text-sm"
-                      >
-                        <div>
-                          <p className="font-medium text-neutral">
-                            {item.product.name}
-                          </p>
-                          <p className="text-neutral-content">
-                            Qty: {item.quantity} ×{" "}
-                            {formatCurrency(item.product.wholesale_price)}
-                          </p>
-                        </div>
-                        <p className="font-medium text-neutral">
-                          {formatCurrency(
-                            item.product.wholesale_price * item.quantity
-                          )}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+                  <PaymentSelector
+                    customer={customer}
+                    selectedMethod={paymentMethod}
+                    onSelect={setPaymentMethod}
+                  />
                 </CardContent>
               </Card>
+            )}
 
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentStep("payment")}
-                  disabled={isSubmitting}
-                >
-                  Back
-                </Button>
+            {/* Step 3: Review */}
+            {currentStep === 2 && (
+              <OrderReview
+                items={items}
+                subtotal={totals.subtotal}
+                shipping={shippingCost}
+                total={orderTotal}
+                shippingAddress={selectedShippingAddress}
+                billingAddress={selectedShippingAddress}
+                paymentMethod={paymentMethod}
+                onEditShipping={() => setCurrentStep(0)}
+                onEditPayment={() => setCurrentStep(1)}
+              />
+            )}
+
+            {/* Navigation buttons */}
+            <div className="flex items-center justify-between mt-6">
+              <Button
+                variant="ghost"
+                onClick={handleBack}
+                disabled={currentStep === 0}
+                leftIcon={<ArrowLeft className="h-4 w-4" />}
+              >
+                Back
+              </Button>
+
+              {currentStep < CHECKOUT_STEPS.length - 1 ? (
                 <Button
                   variant="primary"
-                  size="lg"
+                  onClick={handleNext}
+                  disabled={!canProceed}
+                  rightIcon={<ArrowRight className="h-4 w-4" />}
+                >
+                  Continue
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
                   onClick={handlePlaceOrder}
-                  loading={isSubmitting}
-                  disabled={isSubmitting}
-                  fullWidth
+                  disabled={!canProceed || orderLoading}
+                  loading={orderLoading}
                 >
                   Place Order
                 </Button>
-              </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Order Summary Sidebar */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-24">
-            <CardContent>
-              <h3 className="text-lg font-bold text-neutral mb-4">
-                Order Summary
-              </h3>
+            {orderError && (
+              <p className="text-error text-sm mt-4 text-center">{orderError}</p>
+            )}
+          </div>
 
-              <div className="space-y-2 text-sm mb-4">
-                <div className="flex justify-between">
-                  <span className="text-neutral-content">
-                    Subtotal ({totalItems} items)
-                  </span>
-                  <span className="font-medium text-neutral">
-                    {formatCurrency(subtotal)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span className="text-neutral-content">Shipping</span>
-                  <span className="font-medium text-neutral">
-                    {shippingCost === 0 ? (
-                      <Badge variant="success" size="sm">
-                        FREE
-                      </Badge>
-                    ) : (
-                      formatCurrency(shippingCost)
-                    )}
-                  </span>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-base-300">
-                <div className="flex justify-between items-baseline mb-4">
-                  <span className="text-lg font-semibold text-neutral">
-                    Total
-                  </span>
-                  <span className="text-2xl font-bold text-neutral">
-                    {formatCurrency(total)}
-                  </span>
-                </div>
-
-                <div className="p-3 bg-info/10 rounded-lg">
-                  <div className="flex items-start space-x-2">
-                    <FiAlertCircle className="w-4 h-4 text-info flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-info">
-                      Payment due date will be calculated based on your selected
-                      terms after order confirmation.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Sidebar summary */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-24">
+              <CardHeader>
+                <CardTitle>Order Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CartSummary
+                  totals={totals}
+                  shippingEstimates={shippingEstimates}
+                  selectedShipping={selectedShipping}
+                  onShippingSelect={setSelectedShipping}
+                  showShipping={currentStep >= 0}
+                />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </main>
   );
 }
+

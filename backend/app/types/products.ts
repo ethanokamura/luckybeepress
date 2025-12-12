@@ -9,6 +9,7 @@ export interface Products {
   cost: number | null;
   is_active: boolean | null;
   minimum_order_quantity: number | null;
+  has_box: boolean | null;
   stock_quantity: number | null;
   low_stock_threshold: number | null;
   image_url: string | null;

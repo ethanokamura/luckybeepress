@@ -1,33 +1,42 @@
-import React from "react";
+"use client";
+
+import { ReactNode } from "react";
 
 interface CardProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
-  hover?: boolean;
+  variant?: "default" | "elevated" | "bordered";
   padding?: "none" | "sm" | "md" | "lg";
+  onClick?: () => void;
 }
+
+const variantStyles = {
+  default: "bg-base-100",
+  elevated: "bg-base-100 shadow-lg hover:shadow-xl transition-shadow",
+  bordered: "bg-base-100 border border-base-300",
+};
+
+const paddingStyles = {
+  none: "",
+  sm: "p-3",
+  md: "p-5",
+  lg: "p-8",
+};
 
 export function Card({
   children,
   className = "",
-  hover = false,
+  variant = "default",
   padding = "md",
+  onClick,
 }: CardProps) {
-  const baseStyles = "bg-base-100 rounded-lg border border-base-300 shadow-sm";
-  const hoverStyles = hover
-    ? "hover:shadow-md transition-shadow duration-200 cursor-pointer"
-    : "";
-
-  const paddingStyles = {
-    none: "",
-    sm: "p-4",
-    md: "p-6",
-    lg: "p-8",
-  };
+  const baseStyles = "rounded-xl";
+  const clickStyles = onClick ? "cursor-pointer" : "";
 
   return (
     <div
-      className={`${baseStyles} ${hoverStyles} ${paddingStyles[padding]} ${className}`}
+      className={`${baseStyles} ${variantStyles[variant]} ${paddingStyles[padding]} ${clickStyles} ${className}`}
+      onClick={onClick}
     >
       {children}
     </div>
@@ -35,29 +44,33 @@ export function Card({
 }
 
 interface CardHeaderProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }
 
 export function CardHeader({ children, className = "" }: CardHeaderProps) {
-  return <div className={`mb-4 ${className}`}>{children}</div>;
+  return (
+    <div className={`flex items-center justify-between mb-4 ${className}`}>
+      {children}
+    </div>
+  );
 }
 
 interface CardTitleProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }
 
 export function CardTitle({ children, className = "" }: CardTitleProps) {
   return (
-    <h3 className={`text-xl font-semibold text-neutral ${className}`}>
+    <h3 className={`text-lg font-semibold text-base-content ${className}`}>
       {children}
     </h3>
   );
 }
 
 interface CardContentProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }
 
@@ -66,7 +79,7 @@ export function CardContent({ children, className = "" }: CardContentProps) {
 }
 
 interface CardFooterProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }
 
@@ -77,3 +90,4 @@ export function CardFooter({ children, className = "" }: CardFooterProps) {
     </div>
   );
 }
+

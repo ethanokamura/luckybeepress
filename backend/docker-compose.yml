@@ -3,7 +3,7 @@ services:
     build:
       context: ./app
       dockerfile: Dockerfile
-    container_name: deno-backend
+    container_name: deno-app
     volumes:
       - ./app:/app
       - deno-cache:/deno-dir
@@ -37,5 +37,35 @@ services:
         reservations:
           cpus: '1'
           memory: 2GB
+  
+  deno-test:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: deno-test
+    volumes:
+      - ./app:/app
+      - deno-cache:/deno-dir
+    environment:
+      - DENO_ENV=test
+      - DATABASE_URL=${DATABASE_URL_TEST:-${DATABASE_URL}}
+      - AUTH0_DOMAIN=${AUTH0_DOMAIN}
+      - AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}
+      - AUTH0_CLIENT_SECRET=${AUTH0_CLIENT_SECRET}
+      - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+    command: >
+      sh -c "
+      deno test
+      --allow-net
+      --allow-env
+      --allow-read
+      --allow-sys
+      --unstable-node-globals
+      --coverage=coverage &&
+      deno coverage coverage --lcov > coverage.lcov
+      "
+    profiles:
+      - test
+
 volumes:
   deno-cache:

@@ -5,16 +5,20 @@ export const cartItemsSortColumns = [
   "cart_id",
   "product_id",
   "quantity",
+  "variant",
   "unit_price",
   "created_at",
   "updated_at",
 ] as const;
 
+const variantEnum = z.enum(["single", "box"]);
+
 const base = z.object({
-  id: z.uuid().optional(),
-  cart_id: z.uuid().optional(),
-  product_id: z.uuid().optional(),
+  id: z.string().uuid().optional(),
+  cart_id: z.string().uuid().optional(),
+  product_id: z.string().uuid().optional(),
   quantity: z.coerce.number().optional(),
+  variant: variantEnum.optional(),
   unit_price: z.coerce.number().optional(),
   created_at: z.coerce.date().optional(),
   updated_at: z.coerce.date().optional(),
@@ -29,6 +33,7 @@ export const cartItemsValidator = {
     cart_id: true,
     product_id: true,
     quantity: true,
+    variant: true,
     unit_price: true,
   }),
 

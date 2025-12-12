@@ -82,7 +82,7 @@ export async function getProducts(
   id: string
 ): Promise<ActionResponse<Products>> {
   try {
-    if (!id || !z.uuid().safeParse(id).success) {
+    if (!id || !z.string().uuid().safeParse(id).success) {
       return {
         success: false,
         error: `Invalid ${resource} ID`,
@@ -107,7 +107,7 @@ export async function updateProducts(
   input: UpdateProductsInput
 ): Promise<ActionResponse<Products>> {
   try {
-    if (!id || !z.uuid().safeParse(id).success) {
+    if (!id || !z.string().uuid().safeParse(id).success) {
       return {
         success: false,
         error: `Invalid ${resource} ID`,
@@ -145,7 +145,7 @@ export async function deleteProducts(
   id: string
 ): Promise<ActionResponse<void>> {
   try {
-    if (!id || !z.uuid().safeParse(id).success) {
+    if (!id || !z.string().uuid().safeParse(id).success) {
       return {
         success: false,
         error: `Invalid ${resource} ID`,
@@ -163,5 +163,25 @@ export async function deleteProducts(
     };
   } catch (error) {
     return handleAxiosError<void>(error);
+  }
+}
+
+export async function findCategories(): Promise<ActionResponse<string[]>> {
+  try {
+    const apiClient = await createApiClient(resource);
+
+    const response = await apiClient.get("/categories");
+
+    // The API returns { category: string }[] so we need to extract the category strings
+    const categories = response.data.data.map(
+      (item: { category: string }) => item.category
+    );
+
+    return {
+      success: true,
+      data: categories,
+    };
+  } catch (error) {
+    return handleAxiosError<string[]>(error);
   }
 }

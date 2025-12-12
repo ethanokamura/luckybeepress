@@ -1,247 +1,200 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { useCart } from "@/lib/cart-context";
-import { Button, Card, CardContent, Input, Loading } from "@/components/ui";
-import { formatCurrency } from "@/lib/mock-data";
-import { FiTrash2, FiShoppingBag, FiArrowRight } from "react-icons/fi";
+import { useState } from "react";
 import Link from "next/link";
-import { useEffect } from "react";
-import Image from "next/image";
+import { ArrowLeft, ArrowRight, Trash2 } from "lucide-react";
+import { CartItem, CartItemSkeleton } from "@/components/cart/CartItem";
+import { CartSummary } from "@/components/cart/CartSummary";
+import { EmptyCart } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { useCartContext } from "@/providers/CartProvider";
 
 export default function CartPage() {
-  const router = useRouter();
-  const { user, isLoading: userLoading } = useUser();
-  const { items, updateQuantity, removeItem, getTotalPrice, getTotalItems } =
-    useCart();
+  const {
+    items,
+    totals,
+    shippingEstimates,
+    loading,
+    itemLoading,
+    incrementItem,
+    decrementItem,
+    removeItem,
+    clearCart,
+    canCheckout,
+    checkoutBlockReason,
+  } = useCartContext();
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!userLoading && !user) {
-      router.push("/api/auth/login");
+  const [selectedShipping, setSelectedShipping] = useState<string>("standard");
+  const [clearing, setClearing] = useState(false);
+
+  const handleClearCart = async () => {
+    if (confirm("Are you sure you want to clear your cart?")) {
+      setClearing(true);
+      await clearCart();
+      setClearing(false);
     }
-  }, [user, userLoading, router]);
+  };
 
-  if (userLoading) {
-    return <Loading text="Loading cart..." />;
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-base-100">
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-2xl font-bold mb-8">Your Cart</h1>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <Card>
+                <CardContent className="p-6">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <CartItemSkeleton key={i} />
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+            <div>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="space-y-4 animate-pulse">
+                    <div className="h-4 bg-base-200 rounded w-full" />
+                    <div className="h-2 bg-base-200 rounded w-full" />
+                    <div className="h-4 bg-base-200 rounded w-3/4" />
+                    <div className="h-12 bg-base-200 rounded w-full mt-4" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
   }
-
-  if (!user) {
-    return null;
-  }
-
-  const subtotal = getTotalPrice();
-  const totalItems = getTotalItems();
-  const shippingCost = subtotal >= 500 ? 0 : 25;
-  const total = subtotal + shippingCost;
 
   if (items.length === 0) {
     return (
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Card>
-          <CardContent className="text-center py-16">
-            <FiShoppingBag className="w-24 h-24 mx-auto text-neutral-content mb-6" />
-            <h2 className="text-2xl font-bold text-neutral mb-3">
-              Your Cart is Empty
-            </h2>
-            <p className="text-base-content mb-8">
-              Start adding products to your cart to create your wholesale order.
-            </p>
-            <Link href="/products">
-              <Button variant="primary" size="lg">
-                Browse Products
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <main className="min-h-screen bg-base-100">
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-2xl font-bold mb-8">Your Cart</h1>
+          <Card>
+            <CardContent className="py-16">
+              <EmptyCart
+                onBrowse={() => (window.location.href = "/products")}
+              />
+            </CardContent>
+          </Card>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-4xl font-bold text-neutral font-serif mb-2">
-        Shopping Cart
-      </h1>
-      <p className="text-base-content mb-8">
-        {totalItems} {totalItems === 1 ? "item" : "items"} in your cart
-      </p>
+    <main className="min-h-screen bg-base-100">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold">Your Cart</h1>
+            <p className="text-base-content/60 mt-1">
+              {items.length} {items.length === 1 ? "item" : "items"}
+            </p>
+          </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Cart Items */}
-        <div className="lg:col-span-2 space-y-4">
-          {items.map((item) => {
-            const minOrderQty = item.product.minimum_order_quantity || 1;
-            const itemTotal = item.product.wholesale_price * item.quantity;
-
-            return (
-              <Card key={item.product.id}>
-                <CardContent>
-                  <div className="flex gap-4">
-                    {/* Product Image */}
-                    <div className="w-24 h-24 shrink-0 bg-base-200 rounded-lg overflow-hidden">
-                      {item.product.image_url ? (
-                        <Image
-                          src={item.product.image_url ?? "/logo.svg"}
-                          alt={item.product.name}
-                          className="w-full h-full object-cover"
-                          width={100}
-                          height={100}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <FiShoppingBag className="w-8 h-8 text-neutral-content" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Product Info */}
-                    <div className="flex-1 min-w-0">
-                      <Link href={`/products/${item.product.id}`}>
-                        <h3 className="font-semibold text-lg text-neutral hover:text-primary mb-1">
-                          {item.product.name}
-                        </h3>
-                      </Link>
-                      <p className="text-sm text-neutral-content mb-3">
-                        SKU: {item.product.sku}
-                      </p>
-
-                      <div className="flex items-center gap-4">
-                        {/* Quantity Controls */}
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) => {
-                              const qty = parseInt(e.target.value);
-                              if (!isNaN(qty) && qty >= minOrderQty) {
-                                updateQuantity(item.product.id!, qty);
-                              }
-                            }}
-                            min={minOrderQty}
-                            className="w-20 text-center"
-                          />
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() =>
-                              updateQuantity(
-                                item.product.id!,
-                                Math.max(minOrderQty, item.quantity - 1)
-                              )
-                            }
-                          >
-                            -
-                          </Button>
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() =>
-                              updateQuantity(
-                                item.product.id!,
-                                item.quantity + 1
-                              )
-                            }
-                          >
-                            +
-                          </Button>
-                        </div>
-
-                        {/* Remove Button */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeItem(item.product.id!)}
-                          className="text-error hover:bg-error/10"
-                        >
-                          <FiTrash2 className="w-4 h-4 mr-1" />
-                          Remove
-                        </Button>
-                      </div>
-
-                      <p className="text-xs text-neutral-content mt-2">
-                        Minimum order: {minOrderQty} units
-                      </p>
-                    </div>
-
-                    {/* Price */}
-                    <div className="text-right">
-                      <p className="text-sm text-neutral-content mb-1">
-                        {formatCurrency(item.product.wholesale_price)} each
-                      </p>
-                      <p className="text-xl font-bold text-neutral">
-                        {formatCurrency(itemTotal)}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<Trash2 className="h-4 w-4" />}
+            onClick={handleClearCart}
+            loading={clearing}
+          >
+            Clear Cart
+          </Button>
         </div>
 
-        {/* Order Summary */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-24">
-            <CardContent>
-              <h2 className="text-xl font-bold text-neutral mb-4">
-                Order Summary
-              </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Cart items */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardContent className="p-6">
+                {items.map((item) => (
+                  <CartItem
+                    key={item.id}
+                    item={item}
+                    onIncrement={() => item.id && incrementItem(item.id)}
+                    onDecrement={() => item.id && decrementItem(item.id)}
+                    onRemove={() => item.id && removeItem(item.id)}
+                    loading={itemLoading === item.id}
+                  />
+                ))}
+              </CardContent>
+            </Card>
 
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between text-base-content">
-                  <span>Subtotal ({totalItems} items)</span>
-                  <span className="font-medium">
-                    {formatCurrency(subtotal)}
-                  </span>
+            {/* Continue shopping link */}
+            <Link
+              href="/products"
+              className="inline-flex items-center gap-2 mt-4 text-sm text-primary hover:underline"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Continue Shopping
+            </Link>
+          </div>
+
+          {/* Summary sidebar */}
+          <div>
+            <Card className="sticky top-24">
+              <CardHeader>
+                <CardTitle>Order Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <CartSummary
+                  totals={totals}
+                  shippingEstimates={shippingEstimates}
+                  selectedShipping={selectedShipping}
+                  onShippingSelect={setSelectedShipping}
+                  showShipping
+                />
+
+                {/* Checkout button */}
+                <div className="mt-6 space-y-3">
+                  {!canCheckout && checkoutBlockReason && (
+                    <p className="text-sm text-warning text-center">
+                      {checkoutBlockReason}
+                    </p>
+                  )}
+
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    size="lg"
+                    disabled={!canCheckout}
+                    rightIcon={<ArrowRight className="h-4 w-4" />}
+                    onClick={() => (window.location.href = "/checkout")}
+                  >
+                    Proceed to Checkout
+                  </Button>
                 </div>
 
-                <div className="flex justify-between text-base-content">
-                  <span>Shipping</span>
-                  <span className="font-medium">
-                    {shippingCost === 0 ? (
-                      <span className="text-success">FREE</span>
-                    ) : (
-                      formatCurrency(shippingCost)
-                    )}
-                  </span>
-                </div>
-
-                {subtotal < 500 && subtotal > 0 && (
-                  <p className="text-xs text-info">
-                    Add {formatCurrency(500 - subtotal)} more for free shipping!
-                  </p>
-                )}
-
-                <div className="pt-3 border-t border-base-300">
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-lg font-semibold text-neutral">
-                      Total
-                    </span>
-                    <span className="text-2xl font-bold text-neutral">
-                      {formatCurrency(total)}
-                    </span>
+                {/* Trust indicators */}
+                <div className="mt-6 pt-6 border-t border-base-300">
+                  <div className="space-y-2 text-sm text-base-content/60">
+                    <p className="flex items-center gap-2">
+                      <span className="text-success">✓</span>
+                      Secure checkout
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <span className="text-success">✓</span>
+                      Premium quality products
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <span className="text-success">✓</span>
+                      17+ years trusted seller
+                    </p>
                   </div>
                 </div>
-              </div>
-
-              <Link href="/checkout">
-                <Button variant="primary" size="lg" fullWidth>
-                  Proceed to Checkout
-                  <FiArrowRight className="ml-2" />
-                </Button>
-              </Link>
-
-              <Link href="/products">
-                <Button variant="ghost" size="sm" fullWidth className="mt-3">
-                  Continue Shopping
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </main>
   );
 }
+

@@ -1,7 +1,7 @@
 // lib/api-client-utils.ts (NO 'use server' directive)
 
 import axios, { AxiosError } from "axios";
-import { z, ZodType } from "zod";
+import { ZodType } from "zod";
 
 export type ActionResponse<T = unknown> = {
   success: boolean;

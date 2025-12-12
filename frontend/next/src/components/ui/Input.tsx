@@ -1,163 +1,73 @@
-import React from "react";
+"use client";
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+import { InputHTMLAttributes, forwardRef } from "react";
+
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
-  helperText?: string;
-  fullWidth?: boolean;
+  hint?: string;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
-export function Input({
-  label,
-  error,
-  helperText,
-  fullWidth = false,
-  className = "",
-  ...props
-}: InputProps) {
-  const widthStyle = fullWidth ? "w-full" : "";
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+  (
+    { label, error, hint, leftIcon, rightIcon, className = "", id, ...props },
+    ref
+  ) => {
+    const inputId = id || props.name;
+    const hasError = !!error;
 
-  return (
-    <div className={`${widthStyle}`}>
-      {label && (
-        <label className="block text-sm font-medium text-base-content mb-1.5">
-          {label}
-          {props.required && <span className="text-error ml-1">*</span>}
-        </label>
-      )}
+    return (
+      <div className="w-full">
+        {label && (
+          <label
+            htmlFor={inputId}
+            className="block text-sm font-medium text-base-content mb-1.5"
+          >
+            {label}
+          </label>
+        )}
+        <div className="relative">
+          {leftIcon && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50">
+              {leftIcon}
+            </div>
+          )}
+          <input
+            ref={ref}
+            id={inputId}
+            className={`
+              w-full px-4 py-2.5 
+              bg-base-200 
+              border border-base-300 
+              rounded-lg 
+              text-base-content 
+              placeholder:text-base-content/40
+              focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary
+              transition-all duration-200
+              disabled:opacity-50 disabled:cursor-not-allowed
+              ${leftIcon ? "pl-10" : ""}
+              ${rightIcon ? "pr-10" : ""}
+              ${hasError ? "border-error focus:ring-error/50 focus:border-error" : ""}
+              ${className}
+            `}
+            {...props}
+          />
+          {rightIcon && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/50">
+              {rightIcon}
+            </div>
+          )}
+        </div>
+        {error && <p className="mt-1.5 text-sm text-error">{error}</p>}
+        {hint && !error && (
+          <p className="mt-1.5 text-sm text-base-content/60">{hint}</p>
+        )}
+      </div>
+    );
+  }
+);
 
-      <input
-        className={`
-          block w-full px-4 py-1
-          bg-base-100 
-          border ${error ? "border-error" : "border-base-300"}
-          rounded-lg
-          text-base-content
-          placeholder:text-neutral-content
-          focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
-          disabled:bg-base-200 disabled:cursor-not-allowed
-          transition-colors duration-200
-          ${className}
-        `}
-        {...props}
-      />
+Input.displayName = "Input";
 
-      {error && <p className="mt-1.5 text-sm text-error">{error}</p>}
-
-      {helperText && !error && (
-        <p className="mt-1.5 text-sm text-neutral-content">{helperText}</p>
-      )}
-    </div>
-  );
-}
-
-interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label?: string;
-  error?: string;
-  helperText?: string;
-  fullWidth?: boolean;
-}
-
-export function Textarea({
-  label,
-  error,
-  helperText,
-  fullWidth = false,
-  className = "",
-  ...props
-}: TextareaProps) {
-  const widthStyle = fullWidth ? "w-full" : "";
-
-  return (
-    <div className={`${widthStyle}`}>
-      {label && (
-        <label className="block text-sm font-medium text-base-content mb-1.5">
-          {label}
-          {props.required && <span className="text-error ml-1">*</span>}
-        </label>
-      )}
-
-      <textarea
-        className={`
-          block w-full px-4 py-2.5 
-          bg-base-100 
-          border ${error ? "border-error" : "border-base-300"}
-          rounded-lg
-          text-base-content
-          placeholder:text-neutral-content
-          focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
-          disabled:bg-base-200 disabled:cursor-not-allowed
-          transition-colors duration-200
-          resize-vertical
-          ${className}
-        `}
-        {...props}
-      />
-
-      {error && <p className="mt-1.5 text-sm text-error">{error}</p>}
-
-      {helperText && !error && (
-        <p className="mt-1.5 text-sm text-neutral-content">{helperText}</p>
-      )}
-    </div>
-  );
-}
-
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  label?: string;
-  error?: string;
-  helperText?: string;
-  fullWidth?: boolean;
-  options: { value: string; label: string }[];
-}
-
-export function Select({
-  label,
-  error,
-  helperText,
-  fullWidth = false,
-  options,
-  className = "",
-  ...props
-}: SelectProps) {
-  const widthStyle = fullWidth ? "w-full" : "";
-
-  return (
-    <div className={`${widthStyle}`}>
-      {label && (
-        <label className="block text-sm font-medium text-base-content mb-1.5">
-          {label}
-          {props.required && <span className="text-error ml-1">*</span>}
-        </label>
-      )}
-
-      <select
-        className={`
-          block w-full px-4 py-2.5 
-          bg-base-200 
-          border ${error ? "border-error" : "border-base-300"}
-          rounded-lg
-          text-base-content
-          focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
-          disabled:bg-base-200 disabled:cursor-not-allowed
-          transition-colors duration-200
-          ${className}
-        `}
-        {...props}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-
-      {error && <p className="mt-1.5 text-sm text-error">{error}</p>}
-
-      {helperText && !error && (
-        <p className="mt-1.5 text-sm text-neutral-content">{helperText}</p>
-      )}
-    </div>
-  );
-}

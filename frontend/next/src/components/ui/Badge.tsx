@@ -1,47 +1,45 @@
-import React from "react";
+"use client";
 
-export type BadgeVariant =
-  | "primary"
-  | "secondary"
-  | "success"
-  | "warning"
-  | "error"
-  | "info"
-  | "neutral";
+import { ReactNode } from "react";
 
 interface BadgeProps {
-  variant?: BadgeVariant;
+  children: ReactNode;
+  variant?:
+    | "default"
+    | "primary"
+    | "secondary"
+    | "success"
+    | "warning"
+    | "error"
+    | "info";
   size?: "sm" | "md";
-  children: React.ReactNode;
   className?: string;
 }
 
+const variantStyles = {
+  default: "bg-base-300 text-base-content",
+  primary: "bg-primary/20 text-primary",
+  secondary: "bg-secondary/20 text-secondary",
+  success: "bg-success/20 text-success",
+  warning: "bg-warning/20 text-warning",
+  error: "bg-error/20 text-error",
+  info: "bg-info/20 text-info",
+};
+
+const sizeStyles = {
+  sm: "px-2 py-0.5 text-xs",
+  md: "px-3 py-1 text-sm",
+};
+
 export function Badge({
-  variant = "neutral",
-  size = "md",
   children,
+  variant = "default",
+  size = "md",
   className = "",
 }: BadgeProps) {
-  const baseStyles = "inline-flex items-center font-medium rounded";
-
-  const variantStyles = {
-    primary: "bg-primary/20 text-secondary border border-primary/30",
-    secondary: "bg-secondary/20 text-secondary border border-secondary/30",
-    success: "bg-success text-success-content border border-success-content/30",
-    warning: "bg-warning text-warning-content border border-warning-content/30",
-    error: "bg-error text-error-content border border-error-content/30",
-    info: "bg-info text-info-content border border-info-content/30",
-    neutral: "bg-base-100 text-base-content border border-base-content/30",
-  };
-
-  const sizeStyles = {
-    sm: "px-2 py-0.5 text-xs",
-    md: "px-3 py-1 text-sm",
-  };
-
   return (
     <span
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={`inline-flex items-center font-medium rounded-lg ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
     >
       {children}
     </span>

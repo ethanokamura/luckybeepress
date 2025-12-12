@@ -2,6 +2,7 @@
 import { createMiddleware } from "hono/factory";
 import { verify, decode } from "hono/jwt";
 import { HTTPException } from "hono/http-exception";
+import { Context, Next } from "hono";
 
 const AUTH0_DOMAIN = Deno.env.get("AUTH0_DOMAIN")!;
 const AUTH0_AUDIENCE = Deno.env.get("AUTH0_AUDIENCE")!;
@@ -32,7 +33,7 @@ async function getSigningKey(kid: string) {
   return key;
 }
 
-export const requiresAuth = createMiddleware(async (c, next) => {
+export const requiresAuth = createMiddleware(async (c: Context, next: Next) => {
   const authHeader = c.req.header("Authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {

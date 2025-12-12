@@ -9,8 +9,8 @@ export const cartsSortColumns = [
 ] as const;
 
 const base = z.object({
-  id: z.uuid().optional(),
-  customer_id: z.uuid().optional(),
+  id: z.string().uuid().optional(),
+  customer_id: z.string().uuid().optional(),
   status: z.string().optional(),
   created_at: z.coerce.date().optional(),
   updated_at: z.coerce.date().optional(),
