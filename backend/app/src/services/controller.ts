@@ -73,20 +73,24 @@ export function createController<T>(deps: ControllerDependencies) {
     const { cursor, limit, order_by, order, ...filters } = query;
 
     try {
-      const { data, nextCursor, hasNextPage } = await getPaginatedResults<T>(
-        tableName,
-        "id",
-        {
-          cursor: cursor as string | undefined,
-          limit: (parseInt(limit as string) as number | undefined) ?? 10,
-          order_by: (order_by as string | undefined) ?? "created_at",
-          order: (order as "asc" | "desc" | undefined) ?? "desc",
-          filters: (filters as Record<string, QueryParams> | undefined) ?? {},
-        },
-        timestampColumns
-      );
+      const { data, nextCursor, hasNextPage, count } =
+        await getPaginatedResults<T>(
+          tableName,
+          "id",
+          {
+            cursor: cursor as string | undefined,
+            limit: (parseInt(limit as string) as number | undefined) ?? 10,
+            order_by: (order_by as string | undefined) ?? "created_at",
+            order: (order as "asc" | "desc" | undefined) ?? "desc",
+            filters: (filters as Record<string, QueryParams> | undefined) ?? {},
+          },
+          timestampColumns
+        );
 
-      return c.json({ success: true, data, nextCursor, hasNextPage }, 200);
+      return c.json(
+        { success: true, data, nextCursor, hasNextPage, count },
+        200
+      );
     } catch (error) {
       console.error(`Error fetching ${tableName}s:`, error);
       return c.json(

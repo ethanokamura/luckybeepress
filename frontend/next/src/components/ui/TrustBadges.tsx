@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Award, ShoppingBag, Calendar, Leaf, Heart } from "lucide-react";
+import { Star, Award, ShoppingBag, Leaf, Heart } from "lucide-react";
 import { BRAND } from "@/lib/constants";
 import { formatCompactNumber } from "@/lib/format";
 
@@ -108,22 +108,18 @@ export function TrustBadges({
   // Default: horizontal
   return (
     <div
-      className={`flex flex-wrap items-center justify-center gap-6 ${className}`}
+      className={`flex flex-wrap items-start justify-center gap-10 ${className}`}
     >
-      {badges.map((badge, index) => (
-        <div key={badge.label}>
-          <div className={`flex items-center ${styles.gap}`}>
-            <badge.icon className={`${styles.icon} text-primary`} />
-            <div className="flex flex-col">
-              <span className={styles.value}>{badge.value}</span>
-              <span className={`${styles.label} text-base-content/60`}>
-                {badge.label}
-              </span>
-            </div>
-          </div>
-          {index < badges.length - 1 && (
-            <div className="hidden sm:block h-8 w-px bg-base-300" />
-          )}
+      {badges.map((badge) => (
+        <div
+          key={badge.label}
+          className={`flex flex-col items-center text-center ${styles.padding}`}
+        >
+          <badge.icon className={`${styles.icon} text-primary mb-2`} />
+          <span className={styles.value}>{badge.value}</span>
+          <span className={`${styles.label} text-base-content/60`}>
+            {badge.label}
+          </span>
         </div>
       ))}
     </div>
@@ -196,7 +192,7 @@ export function FeaturedSellerBadge({
 
   return (
     <span
-      className={`inline-flex items-center font-medium rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-700 dark:text-amber-400 ${sizeStyles[size]} ${className}`}
+      className={`inline-flex items-center font-medium rounded-xl bg-accent/70 text-accent-content ${sizeStyles[size]} ${className}`}
     >
       <Award className={iconSize} />
       Established {BRAND.established}

@@ -28,6 +28,7 @@ export async function getPaginatedResults<T>(
   timestampColumns: Set<string>
 ): Promise<{
   data: T[];
+  count: number;
   nextCursor: string | null;
   hasNextPage: boolean;
 }> {
@@ -77,6 +78,12 @@ export async function getPaginatedResults<T>(
 
   const result = await query<T>(sql, [...params, limitNum + 1]);
 
+  const countResult = await query<{ count: number }>(
+    `SELECT COUNT(*) FROM ${tableName} ${whereClause}`,
+    params
+  );
+  const totalCount = Number(countResult.rows[0]?.count ?? 0);
+
   const hasNextPage = result.rows.length > limitNum;
   const data = hasNextPage ? result.rows.slice(0, limitNum) : result.rows;
 
@@ -90,6 +97,7 @@ export async function getPaginatedResults<T>(
 
   return {
     data,
+    count: totalCount,
     hasNextPage,
     nextCursor,
   };

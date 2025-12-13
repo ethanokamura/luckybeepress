@@ -3,10 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createApiClient } from "@/lib/api-client";
-import { 
-  handleAxiosError, 
-  ActionResponse 
-} from "@/lib/api-client-utils";
+import { handleAxiosError, ActionResponse } from "@/lib/api-client-utils";
 import {
   ordersValidator,
   CreateOrdersInput,
@@ -48,9 +45,14 @@ export async function createOrders(
   }
 }
 
-export async function findOrders(
-  query?: Partial<QueryOrdersInput>
-): Promise<ActionResponse<Orders[]>> {
+export async function findOrders(query?: Partial<QueryOrdersInput>): Promise<
+  ActionResponse<{
+    data: Orders[];
+    count: number;
+    cursor: string | null;
+    hasNextPage: boolean;
+  }>
+> {
   try {
     const validated = ordersValidator.query.parse(query || {});
     const apiClient = await createApiClient(resource);
@@ -61,7 +63,12 @@ export async function findOrders(
 
     return {
       success: true,
-      data: response.data.data as Orders[],
+      data: {
+        data: response.data.data as Orders[],
+        count: response.data.count,
+        cursor: response.data.nextCursor,
+        hasNextPage: response.data.hasNextPage,
+      },
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -74,13 +81,16 @@ export async function findOrders(
       };
     }
 
-    return handleAxiosError<Orders[]>(error);
+    return handleAxiosError<{
+      data: Orders[];
+      count: number;
+      cursor: string | null;
+      hasNextPage: boolean;
+    }>(error);
   }
 }
 
-export async function getOrders(
-  id: string
-): Promise<ActionResponse<Orders>> {
+export async function getOrders(id: string): Promise<ActionResponse<Orders>> {
   try {
     if (!id || !z.string().uuid().safeParse(id).success) {
       return {
@@ -141,9 +151,7 @@ export async function updateOrders(
   }
 }
 
-export async function deleteOrders(
-  id: string
-): Promise<ActionResponse<void>> {
+export async function deleteOrders(id: string): Promise<ActionResponse<void>> {
   try {
     if (!id || !z.string().uuid().safeParse(id).success) {
       return {

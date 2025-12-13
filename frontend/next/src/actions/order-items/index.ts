@@ -3,17 +3,14 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createApiClient } from "@/lib/api-client";
-import { 
-  handleAxiosError, 
-  ActionResponse 
-} from "@/lib/api-client-utils";
+import { handleAxiosError, ActionResponse } from "@/lib/api-client-utils";
 import {
   orderItemsValidator,
   CreateOrderItemsInput,
   QueryOrderItemsInput,
   UpdateOrderItemsInput,
 } from "./validators";
-import type { OrderItems } from "@/types/order-items";
+import type { OrderItems } from "@/types/order_items";
 
 const resource = "order-items";
 const revalidatePaths = ["/order-items", "/dashboard"];
@@ -50,7 +47,14 @@ export async function createOrderItems(
 
 export async function findOrderItems(
   query?: Partial<QueryOrderItemsInput>
-): Promise<ActionResponse<OrderItems[]>> {
+): Promise<
+  ActionResponse<{
+    data: OrderItems[];
+    count: number;
+    cursor: string | null;
+    hasNextPage: boolean;
+  }>
+> {
   try {
     const validated = orderItemsValidator.query.parse(query || {});
     const apiClient = await createApiClient(resource);
@@ -61,7 +65,12 @@ export async function findOrderItems(
 
     return {
       success: true,
-      data: response.data.data as OrderItems[],
+      data: {
+        data: response.data.data as OrderItems[],
+        count: response.data.count,
+        cursor: response.data.nextCursor,
+        hasNextPage: response.data.hasNextPage,
+      },
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -74,7 +83,12 @@ export async function findOrderItems(
       };
     }
 
-    return handleAxiosError<OrderItems[]>(error);
+    return handleAxiosError<{
+      data: OrderItems[];
+      count: number;
+      cursor: string | null;
+      hasNextPage: boolean;
+    }>(error);
   }
 }
 

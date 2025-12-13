@@ -21,6 +21,7 @@ export default function ProductsPage() {
     filters,
     sort,
     hasMore,
+    totalCount,
     setFilters,
     setSort,
     clearFilters,
@@ -32,7 +33,7 @@ export default function ProductsPage() {
   return (
     <main className="min-h-screen bg-base-100">
       {/* Page header */}
-      <div className="bg-gradient-to-b from-base-200 to-base-100 py-12">
+      <div className="bg-linear-to-b from-base-200 to-base-100 py-12">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl md:text-4xl font-bold text-base-content">
             Product Catalog
@@ -76,7 +77,7 @@ export default function ProductsPage() {
               onFiltersChange={setFilters}
               onSortChange={setSort}
               onClear={clearFilters}
-              totalResults={products.length}
+              totalResults={totalCount}
               className="mb-8"
             />
 

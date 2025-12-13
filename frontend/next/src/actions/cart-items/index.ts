@@ -47,7 +47,14 @@ export async function createCartItems(
 
 export async function findCartItems(
   query?: Partial<QueryCartItemsInput>
-): Promise<ActionResponse<CartItems[]>> {
+): Promise<
+  ActionResponse<{
+    data: CartItems[];
+    count: number;
+    cursor: string | null;
+    hasNextPage: boolean;
+  }>
+> {
   try {
     const validated = cartItemsValidator.query.parse(query || {});
     const apiClient = await createApiClient(resource);
@@ -58,7 +65,12 @@ export async function findCartItems(
 
     return {
       success: true,
-      data: response.data.data as CartItems[],
+      data: {
+        data: response.data.data as CartItems[],
+        count: response.data.count,
+        cursor: response.data.nextCursor,
+        hasNextPage: response.data.hasNextPage,
+      },
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -71,7 +83,12 @@ export async function findCartItems(
       };
     }
 
-    return handleAxiosError<CartItems[]>(error);
+    return handleAxiosError<{
+      data: CartItems[];
+      count: number;
+      cursor: string | null;
+      hasNextPage: boolean;
+    }>(error);
   }
 }
 

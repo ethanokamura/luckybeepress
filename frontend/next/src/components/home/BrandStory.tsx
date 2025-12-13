@@ -48,14 +48,11 @@ export function BrandStory({ className = "" }: BrandStoryProps) {
           </div>
 
           {/* Stats/Trust */}
-          <div className="bg-base-200/50 rounded-3xl p-8 md:p-12">
-            <h3 className="text-xl font-semibold">
+          <div className="bg-base-100 flex flex-col items-center justify-center rounded-3xl p-8 md:p-12">
+            <h3 className="text-xl font-semibold mb-8 text-center">
               Trusted by Retailers Around the World
             </h3>
-            <h3 className="text-md font-semibold text-base-content/50 mb-8">
-              For Over {BRAND.yearsInBusiness} Years
-            </h3>
-            <TrustBadges size="lg" showAll className="justify-start" />
+            <TrustBadges size="lg" showAll />
 
             {/* Product specs */}
             <div className="mt-10 pt-8 border-t border-base-300">

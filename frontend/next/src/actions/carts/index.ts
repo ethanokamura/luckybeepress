@@ -3,10 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createApiClient } from "@/lib/api-client";
-import { 
-  handleAxiosError, 
-  ActionResponse 
-} from "@/lib/api-client-utils";
+import { handleAxiosError, ActionResponse } from "@/lib/api-client-utils";
 import {
   cartsValidator,
   CreateCartsInput,
@@ -48,9 +45,14 @@ export async function createCarts(
   }
 }
 
-export async function findCarts(
-  query?: Partial<QueryCartsInput>
-): Promise<ActionResponse<Carts[]>> {
+export async function findCarts(query?: Partial<QueryCartsInput>): Promise<
+  ActionResponse<{
+    data: Carts[];
+    count: number;
+    cursor: string | null;
+    hasNextPage: boolean;
+  }>
+> {
   try {
     const validated = cartsValidator.query.parse(query || {});
     const apiClient = await createApiClient(resource);
@@ -61,7 +63,12 @@ export async function findCarts(
 
     return {
       success: true,
-      data: response.data.data as Carts[],
+      data: {
+        data: response.data.data as Carts[],
+        count: response.data.count,
+        cursor: response.data.nextCursor,
+        hasNextPage: response.data.hasNextPage,
+      },
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -74,13 +81,16 @@ export async function findCarts(
       };
     }
 
-    return handleAxiosError<Carts[]>(error);
+    return handleAxiosError<{
+      data: Carts[];
+      count: number;
+      cursor: string | null;
+      hasNextPage: boolean;
+    }>(error);
   }
 }
 
-export async function getCarts(
-  id: string
-): Promise<ActionResponse<Carts>> {
+export async function getCarts(id: string): Promise<ActionResponse<Carts>> {
   try {
     if (!id || !z.string().uuid().safeParse(id).success) {
       return {
@@ -141,9 +151,7 @@ export async function updateCarts(
   }
 }
 
-export async function deleteCarts(
-  id: string
-): Promise<ActionResponse<void>> {
+export async function deleteCarts(id: string): Promise<ActionResponse<void>> {
   try {
     if (!id || !z.string().uuid().safeParse(id).success) {
       return {

@@ -18,7 +18,7 @@ interface ProductFiltersProps {
   onFiltersChange: (filters: ProductFiltersType) => void;
   onSortChange: (sort: ProductSort) => void;
   onClear: () => void;
-  totalResults?: number;
+  totalResults: number;
   className?: string;
 }
 
@@ -71,11 +71,9 @@ export function ProductFilters({
         </div>
 
         <div className="flex items-center gap-3">
-          {totalResults !== undefined && (
-            <span className="text-sm text-base-content/60">
-              {totalResults} products
-            </span>
-          )}
+          <span className="text-sm text-base-content/60">
+            {totalResults} products
+          </span>
           <SortDropdown
             options={PRODUCT_SORT_OPTIONS}
             value={sortValue}

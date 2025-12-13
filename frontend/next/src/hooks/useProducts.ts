@@ -73,7 +73,6 @@ export function useProducts(
   const [error, setError] = useState<string | null>(null);
   const [filters, setFiltersState] = useState<ProductFilters>(initialFilters);
   const [sort, setSortState] = useState<ProductSort>(initialSort);
-  // const [cursor, setCursor] = useState<string | null>(null);
   const cursorRef = useRef<string | null>(null);
 
   const [hasMore, setHasMore] = useState(true);
@@ -127,9 +126,7 @@ export function useProducts(
           setHasMore(data.hasNextPage);
           // Update cursor ref
           cursorRef.current = data.cursor;
-          setTotalCount((prev) =>
-            append ? prev + data.data.length : data.data.length
-          );
+          setTotalCount(data.count);
         } else {
           setError(response.error || "Failed to fetch products");
         }
@@ -383,7 +380,7 @@ export function useNewArrivals(limit: number = 8) {
           limit,
           is_active: true,
           order_by: "created_at",
-          order: "desc",
+          order: "asc",
         });
 
         if (response.success && response.data) {

@@ -64,22 +64,6 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
               </Button>
             </Link>
           </div>
-
-          {/* Value props */}
-          <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-primary">$3</p>
-              <p className="text-sm text-base-content/60">Per Card WSP</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-primary">$150</p>
-              <p className="text-sm text-base-content/60">Minimum Order</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-primary">Net 30</p>
-              <p className="text-sm text-base-content/60">Available Terms</p>
-            </div>
-          </div>
         </div>
       </div>
     </section>

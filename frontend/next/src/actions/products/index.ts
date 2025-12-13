@@ -52,6 +52,7 @@ export async function findProducts(
     data: Products[];
     cursor: string | null;
     hasNextPage: boolean;
+    count: number;
   }>
 > {
   try {
@@ -66,6 +67,7 @@ export async function findProducts(
       success: true,
       data: {
         data: response.data.data as Products[],
+        count: response.data.count,
         cursor: response.data.nextCursor,
         hasNextPage: response.data.hasNextPage,
       },
@@ -83,6 +85,7 @@ export async function findProducts(
 
     return handleAxiosError<{
       data: Products[];
+      count: number;
       cursor: string | null;
       hasNextPage: boolean;
     }>(error);
