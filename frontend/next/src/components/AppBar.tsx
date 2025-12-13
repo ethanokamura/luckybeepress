@@ -3,25 +3,12 @@
 import Link from "next/link";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useDrawer } from "@/providers/DrawerProvider";
-import {
-  Moon,
-  Sun,
-  Menu,
-  LogIn,
-  LogOut,
-  User,
-  Package,
-} from "lucide-react";
+import { Moon, Sun, Menu, LogIn, LogOut, User, Package } from "lucide-react";
 import { useUser } from "@auth0/nextjs-auth0";
 import { CartButton } from "@/components/cart/CartButton";
 import * as config from "@/lib/constants";
 import Image from "next/image";
-
-const navLinks = [
-  { href: "/products", label: "Products" },
-  { href: "/products?category=Birthday", label: "Birthday" },
-  { href: "/products?category=Holiday", label: "Holiday" },
-];
+import hive from "../../public/images/hive.png";
 
 export default function AppBar() {
   const { theme, toggleTheme } = useTheme();
@@ -35,33 +22,18 @@ export default function AppBar() {
         <div className="flex items-center gap-4">
           <button
             onClick={toggleDrawer}
-            className="p-2 rounded-lg hover:bg-base-200 transition-colors lg:hidden"
+            className="p-2 rounded-lg hover:bg-base-200 transition-colors"
             aria-label="Toggle menu"
           >
             <Menu className="w-5 h-5 text-base-content" />
           </button>
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-content font-bold text-sm">LB</span>
-            </div>
+            <Image src={hive} alt={config.title} width={32} height={32} />
             <span className="text-xl font-bold text-base-content hidden sm:block">
               {config.title}
             </span>
           </Link>
         </div>
-
-        {/* Center - Navigation (desktop) */}
-        <nav className="hidden lg:flex items-center gap-1">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="px-4 py-2 rounded-lg text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors font-medium"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
 
         {/* Right side - Actions */}
         <div className="flex items-center gap-2">

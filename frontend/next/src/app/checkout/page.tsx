@@ -157,6 +157,7 @@ export default function CheckoutPage() {
         return createOrderItems({
           order_id: order.id!,
           product_id: item.product_id,
+          photo_url: item.product?.image_url || "",
           sku: item.product?.sku || "",
           product_name: item.product?.name || "Unknown Product",
           quantity,

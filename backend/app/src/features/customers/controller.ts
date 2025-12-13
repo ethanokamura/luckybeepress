@@ -1,5 +1,5 @@
 import { createController } from "../../services/controller.ts";
-import { customersSortColumns } from "./columns.ts";
+import { customersTimeStampColumns } from "./columns.ts";
 import { Customers } from "../../../types/customers.ts";
 
 const {
@@ -11,7 +11,13 @@ const {
 } = createController<Customers>({
   tableName: "customers" as const,
   entityName: "Customers" as const,
-  sortColumns: new Set<string>(customersSortColumns),
+  timestampColumns: new Set<string>(customersTimeStampColumns),
 });
 
-export { createCustomers, getCustomers, findCustomers, updateCustomers, deleteCustomers };
+export {
+  createCustomers,
+  getCustomers,
+  findCustomers,
+  updateCustomers,
+  deleteCustomers,
+};

@@ -60,12 +60,7 @@ export function CategoryShowcase({ className = "" }: CategoryShowcaseProps) {
                 href={`/products?category=${encodeURIComponent(category)}`}
               >
                 <Card className="group hover:shadow-lg transition-all cursor-pointer h-full">
-                  <CardContent className="p-6 text-center">
-                    <div
-                      className={`w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br ${style.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
-                    >
-                      <span className="text-3xl">{style.emoji}</span>
-                    </div>
+                  <CardContent className="px-6 text-center h-full flex items-center justify-center">
                     <h3 className="font-semibold text-base-content group-hover:text-primary transition-colors">
                       {category}
                     </h3>

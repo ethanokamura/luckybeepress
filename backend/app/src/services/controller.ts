@@ -7,12 +7,12 @@ import { QueryParams } from "../types/queries.ts";
 interface ControllerDependencies {
   tableName: string;
   entityName: string;
-  sortColumns: Set<string>;
+  timestampColumns: Set<string>;
 }
 
 // Factory function that returns all CRUD handlers for a given entity
 export function createController<T>(deps: ControllerDependencies) {
-  const { tableName, entityName, sortColumns } = deps;
+  const { tableName, entityName, timestampColumns } = deps;
 
   // --- POST /entity ---
   const createEntity: Handler = async (c: Context) => {
@@ -83,7 +83,7 @@ export function createController<T>(deps: ControllerDependencies) {
           order: (order as "asc" | "desc" | undefined) ?? "desc",
           filters: (filters as Record<string, QueryParams> | undefined) ?? {},
         },
-        sortColumns
+        timestampColumns
       );
 
       return c.json({ success: true, data, nextCursor, hasNextPage }, 200);

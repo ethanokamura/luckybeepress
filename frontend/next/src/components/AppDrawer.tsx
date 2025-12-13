@@ -49,21 +49,28 @@ const navigationSections: NavigationSection[] = [
     ],
   },
   {
-    title: "Categories",
-    items: [
-      { href: "/products?category=Birthday", label: "Birthday", icon: Cake },
-      { href: "/products?category=Thank+You", label: "Thank You", icon: Heart },
-      { href: "/products?category=Holiday", label: "Holiday", icon: Gift },
-    ],
-  },
-  {
     title: "Account",
     items: [
       { href: "/cart", label: "Cart", icon: ShoppingCart },
       { href: "/account", label: "Dashboard", icon: User, protected: true },
-      { href: "/account/orders", label: "Orders", icon: FileText, protected: true },
-      { href: "/account/addresses", label: "Addresses", icon: MapPin, protected: true },
-      { href: "/account/settings", label: "Settings", icon: Settings, protected: true },
+      {
+        href: "/account/orders",
+        label: "Orders",
+        icon: FileText,
+        protected: true,
+      },
+      {
+        href: "/account/addresses",
+        label: "Addresses",
+        icon: MapPin,
+        protected: true,
+      },
+      {
+        href: "/account/settings",
+        label: "Settings",
+        icon: Settings,
+        protected: true,
+      },
     ],
   },
 ];
@@ -169,7 +176,9 @@ export default function AppDrawer() {
                                 const isActive =
                                   pathname === item.href ||
                                   (item.href !== "/" &&
-                                    pathname.startsWith(item.href.split("?")[0]));
+                                    pathname.startsWith(
+                                      item.href.split("?")[0]
+                                    ));
                                 return (
                                   <li key={item.href}>
                                     <Link

@@ -3,10 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createApiClient } from "@/lib/api-client";
-import { 
-  handleAxiosError, 
-  ActionResponse 
-} from "@/lib/api-client-utils";
+import { handleAxiosError, ActionResponse } from "@/lib/api-client-utils";
 import {
   productsValidator,
   CreateProductsInput,
@@ -50,18 +47,28 @@ export async function createProducts(
 
 export async function findProducts(
   query?: Partial<QueryProductsInput>
-): Promise<ActionResponse<Products[]>> {
+): Promise<
+  ActionResponse<{
+    data: Products[];
+    cursor: string | null;
+    hasNextPage: boolean;
+  }>
+> {
   try {
     const validated = productsValidator.query.parse(query || {});
     const apiClient = await createApiClient(resource);
-
+    console.log(validated);
     const response = await apiClient.get("", {
       params: validated,
     });
 
     return {
       success: true,
-      data: response.data.data as Products[],
+      data: {
+        data: response.data.data as Products[],
+        cursor: response.data.nextCursor,
+        hasNextPage: response.data.hasNextPage,
+      },
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -74,7 +81,11 @@ export async function findProducts(
       };
     }
 
-    return handleAxiosError<Products[]>(error);
+    return handleAxiosError<{
+      data: Products[];
+      cursor: string | null;
+      hasNextPage: boolean;
+    }>(error);
   }
 }
 

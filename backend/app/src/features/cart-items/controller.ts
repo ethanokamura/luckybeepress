@@ -1,5 +1,5 @@
 import { createController } from "../../services/controller.ts";
-import { cartItemsSortColumns } from "./columns.ts";
+import { cartItemsTimeStampColumns } from "./columns.ts";
 import { CartItems } from "../../../types/cart_items.ts";
 
 const {
@@ -11,7 +11,13 @@ const {
 } = createController<CartItems>({
   tableName: "cart_items" as const,
   entityName: "CartItems" as const,
-  sortColumns: new Set<string>(cartItemsSortColumns),
+  timestampColumns: new Set<string>(cartItemsTimeStampColumns),
 });
 
-export { createCartItems, getCartItems, findCartItems, updateCartItems, deleteCartItems };
+export {
+  createCartItems,
+  getCartItems,
+  findCartItems,
+  updateCartItems,
+  deleteCartItems,
+};

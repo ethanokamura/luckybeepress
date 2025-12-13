@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { findProducts, getProducts, findCategories } from "@/actions/products";
 import type { Products } from "@/types/products";
 import type { QueryProductsInput } from "@/actions/products/validators";
@@ -73,7 +73,9 @@ export function useProducts(
   const [error, setError] = useState<string | null>(null);
   const [filters, setFiltersState] = useState<ProductFilters>(initialFilters);
   const [sort, setSortState] = useState<ProductSort>(initialSort);
-  const [cursor, setCursor] = useState<string | null>(null);
+  // const [cursor, setCursor] = useState<string | null>(null);
+  const cursorRef = useRef<string | null>(null);
+
   const [hasMore, setHasMore] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -116,34 +118,18 @@ export function useProducts(
     async (append: boolean = false) => {
       setLoading(true);
       setError(null);
-
       try {
-        const query = buildQuery(append ? cursor : null);
+        const query = buildQuery(append ? cursorRef.current : null);
         const response = await findProducts(query);
-
         if (response.success && response.data) {
-          if (append) {
-            setProducts((prev) => [...prev, ...response.data!]);
-          } else {
-            setProducts(response.data);
-          }
-
-          // Handle pagination - check if we received fewer items than requested
-          const receivedCount = response.data.length;
-          setHasMore(receivedCount === limit);
-
-          // Update cursor for next page (using last item's id)
-          if (response.data.length > 0) {
-            const lastItem = response.data[response.data.length - 1];
-            setCursor(lastItem.id);
-          }
-
-          // Update total count estimate
-          if (!append) {
-            setTotalCount(response.data.length);
-          } else {
-            setTotalCount((prev) => prev + response.data!.length);
-          }
+          const data = response.data;
+          setProducts((prev) => (append ? [...prev, ...data.data] : data.data));
+          setHasMore(data.hasNextPage);
+          // Update cursor ref
+          cursorRef.current = data.cursor;
+          setTotalCount((prev) =>
+            append ? prev + data.data.length : data.data.length
+          );
         } else {
           setError(response.error || "Failed to fetch products");
         }
@@ -153,7 +139,7 @@ export function useProducts(
         setLoading(false);
       }
     },
-    [buildQuery, cursor, limit]
+    [buildQuery]
   );
 
   // Initial fetch
@@ -166,24 +152,24 @@ export function useProducts(
   // Actions
   const setFilters = useCallback((newFilters: ProductFilters) => {
     setFiltersState(newFilters);
-    setCursor(null);
+    cursorRef.current = null;
     setHasMore(true);
   }, []);
 
   const setSort = useCallback((newSort: ProductSort) => {
     setSortState(newSort);
-    setCursor(null);
+    cursorRef.current = null;
     setHasMore(true);
   }, []);
 
   const clearFilters = useCallback(() => {
     setFiltersState({});
-    setCursor(null);
+    cursorRef.current = null;
     setHasMore(true);
   }, []);
 
   const refresh = useCallback(async () => {
-    setCursor(null);
+    cursorRef.current = null;
     setHasMore(true);
     await fetchProducts(false);
   }, [fetchProducts]);
@@ -363,7 +349,7 @@ export function useBestSellers(limit: number = 8) {
         });
 
         if (response.success && response.data) {
-          setProducts(response.data);
+          setProducts(response.data.data);
         } else {
           setError(response.error || "Failed to fetch best sellers");
         }
@@ -401,7 +387,7 @@ export function useNewArrivals(limit: number = 8) {
         });
 
         if (response.success && response.data) {
-          setProducts(response.data);
+          setProducts(response.data.data as Products[]);
         } else {
           setError(response.error || "Failed to fetch new arrivals");
         }

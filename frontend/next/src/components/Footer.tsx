@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { Mail, Phone, Instagram, Facebook } from "lucide-react";
 import { BRAND } from "@/lib/constants";
+import Image from "next/image";
+import hive from "../../public/images/hive.png";
 
 const footerLinks = {
   shop: [
@@ -35,9 +37,8 @@ export default function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-content font-bold">LB</span>
-              </div>
+              <Image src={hive} alt={BRAND.name} width={32} height={32} />
+
               <span className="text-xl font-bold text-base-content">
                 {BRAND.name}
               </span>
@@ -146,4 +147,3 @@ export default function Footer() {
     </footer>
   );
 }
-

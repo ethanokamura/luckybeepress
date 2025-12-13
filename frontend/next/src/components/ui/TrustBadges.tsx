@@ -19,11 +19,6 @@ export function TrustBadges({
 }: TrustBadgesProps) {
   const badges = [
     {
-      icon: Calendar,
-      value: `${BRAND.yearsInBusiness}+ Years`,
-      label: "In Business",
-    },
-    {
       icon: Star,
       value: `${BRAND.etsyRating}-Star`,
       label: "Rating",
@@ -116,11 +111,8 @@ export function TrustBadges({
       className={`flex flex-wrap items-center justify-center gap-6 ${className}`}
     >
       {badges.map((badge, index) => (
-        <>
-          <div
-            key={badge.label}
-            className={`flex items-center ${styles.gap}`}
-          >
+        <div key={badge.label}>
+          <div className={`flex items-center ${styles.gap}`}>
             <badge.icon className={`${styles.icon} text-primary`} />
             <div className="flex flex-col">
               <span className={styles.value}>{badge.value}</span>
@@ -132,7 +124,7 @@ export function TrustBadges({
           {index < badges.length - 1 && (
             <div className="hidden sm:block h-8 w-px bg-base-300" />
           )}
-        </>
+        </div>
       ))}
     </div>
   );
@@ -160,7 +152,11 @@ export function TrustIndicator({ className = "" }: { className?: string }) {
 export function QualityBadges({ className = "" }: { className?: string }) {
   const qualities = [
     { icon: Leaf, label: "Eco-Friendly", description: "Recycled envelopes" },
-    { icon: Award, label: "Premium Quality", description: "100% cotton cardstock" },
+    {
+      icon: Award,
+      label: "Premium Quality",
+      description: "100% cotton cardstock",
+    },
     { icon: Heart, label: "Handcrafted", description: "Hand-mixed inks" },
   ];
 
@@ -207,4 +203,3 @@ export function FeaturedSellerBadge({
     </span>
   );
 }
-

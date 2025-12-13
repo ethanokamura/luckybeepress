@@ -1,5 +1,6 @@
 import { QueryParams } from "../types/queries.ts";
 import { query } from "../db/pool.ts";
+import { decodeBase64, encodeBase64 } from "hono/utils/encode";
 
 interface PaginationTypes {
   cursor?: string;
@@ -7,6 +8,17 @@ interface PaginationTypes {
   order_by: string;
   order: "asc" | "desc";
   filters: Record<string, QueryParams>;
+}
+
+// Helper functions using Deno's std library
+function encodeCursor(value: string): string {
+  const encoder = new TextEncoder();
+  return encodeBase64(encoder.encode(value).buffer);
+}
+
+function decodeCursor(cursor: string): string {
+  const decoder = new TextDecoder();
+  return decoder.decode(decodeBase64(cursor).buffer);
 }
 
 export async function getPaginatedResults<T>(
@@ -38,25 +50,30 @@ export async function getPaginatedResults<T>(
 
   // Add cursor condition
   if (cursor) {
-    const decoded = atob(cursor);
-    const [sortValue, userId] = decoded.split(",");
+    const decoded = decodeCursor(cursor);
+    const [sortValue, primaryKeyValue] = decoded.split(",");
+
+    const sortCast = timestampColumns.has(order_by) ? "::TIMESTAMPTZ" : "";
+
     conditions.push(
-      `(${order_by}, ${primaryKey}) ${operator} ($${paramIndex}${
-        timestampColumns.has(order_by) ? "::TIMESTAMPTZ" : ""
-      }, $${paramIndex + 1})`
+      `(${order_by}, ${primaryKey}) ${operator} ($${paramIndex}${sortCast}, $${
+        paramIndex + 1
+      }::UUID)`
     );
-    params.push(sortValue, userId);
+
+    params.push(sortValue, primaryKeyValue);
     paramIndex += 2;
   }
 
   const whereClause =
     conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
   const sql = `
-      SELECT * FROM ${tableName} 
-      ${whereClause}
-      ORDER BY ${order_by} ${direction}, ${primaryKey} ${direction}
-      LIMIT $${paramIndex}
-    `;
+    SELECT * FROM ${tableName} 
+    ${whereClause}
+    ORDER BY ${order_by} ${direction}, ${primaryKey} ${direction}
+    LIMIT $${paramIndex}
+  `;
 
   const result = await query<T>(sql, [...params, limitNum + 1]);
 
@@ -64,7 +81,7 @@ export async function getPaginatedResults<T>(
   const data = hasNextPage ? result.rows.slice(0, limitNum) : result.rows;
 
   const nextCursor = hasNextPage
-    ? btoa(
+    ? encodeCursor(
         `${data.at(-1)?.[order_by as keyof T]},${
           data.at(-1)?.[primaryKey as keyof T]
         }`

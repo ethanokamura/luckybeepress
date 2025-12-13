@@ -1,5 +1,5 @@
 import { createController } from "../../services/controller.ts";
-import { ordersSortColumns } from "./columns.ts";
+import { ordersTimeStampColumns } from "./columns.ts";
 import { Orders } from "../../../types/orders.ts";
 
 const {
@@ -11,7 +11,6 @@ const {
 } = createController<Orders>({
   tableName: "orders" as const,
   entityName: "Orders" as const,
-  sortColumns: new Set<string>(ordersSortColumns),
+  timestampColumns: new Set<string>(ordersTimeStampColumns),
 });
-
 export { createOrders, getOrders, findOrders, updateOrders, deleteOrders };
