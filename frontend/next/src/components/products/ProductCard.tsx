@@ -33,11 +33,11 @@ export function ProductCard({
 }: ProductCardProps) {
   const { quickAddToCart, itemLoading, getProductQuantity } = useCartContext();
   const isInCart = useIsInCart(product.id || "");
-  
+
   // Always use singles for quick-add from card (go to detail page for box option)
   const singleIncrement = getVariantIncrement("single");
   const singlePrice = getVariantPrice("single");
-  
+
   const [quantity, setQuantity] = useState(singleIncrement);
   const [showQuantitySelector, setShowQuantitySelector] = useState(false);
 
@@ -86,7 +86,7 @@ export function ProductCard({
             className="mt-2"
           />
         </div>
-
+        {/* 
         {showAddToCart && (
           <div className="shrink-0">
             <Button
@@ -105,7 +105,7 @@ export function ProductCard({
               {isInCart ? "Added" : "Add"}
             </Button>
           </div>
-        )}
+        )} */}
       </div>
     );
   }
@@ -186,7 +186,7 @@ export function ProductCard({
       {/* Content */}
       <div className="py-4">
         <Link href={`/products/${product.id}`}>
-          <h3 className="font-semibold text-base-content mt-1 line-clamp-2 hover:text-primary transition-colors">
+          <h3 className="font-semibold text-base-content mt-1 line-clamp-2 hover:text-primary transition-colors overflow-hidden text-nowrap text-ellipsis ">
             {product.name}
           </h3>
         </Link>
@@ -202,10 +202,6 @@ export function ProductCard({
           layout="inline"
           className="mt-3"
         />
-
-        <p className="text-xs text-base-content/60 mt-2">
-          {formatCurrency(singlePrice)}/card • Min {PRODUCT_CONFIG.single.increment} cards
-        </p>
 
         {/* Quantity selector (shows when clicked) */}
         {showQuantitySelector && showAddToCart && (
@@ -240,7 +236,7 @@ export function ProductCard({
               </Button>
             </div>
             {canBuyBox && (
-              <Link 
+              <Link
                 href={`/products/${product.id}`}
                 className="block text-center text-xs text-primary hover:underline"
               >

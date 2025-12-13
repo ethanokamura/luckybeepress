@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { TrustIndicator, FeaturedSellerBadge } from "@/components/ui/TrustBadges";
-import { BRAND } from "@/lib/constants";
+import {
+  TrustIndicator,
+  FeaturedSellerBadge,
+} from "@/components/ui/TrustBadges";
 
 interface HeroSectionProps {
   className?: string;
@@ -13,7 +15,7 @@ interface HeroSectionProps {
 export function HeroSection({ className = "" }: HeroSectionProps) {
   return (
     <section
-      className={`relative overflow-hidden bg-gradient-to-br from-primary/5 via-base-100 to-secondary/5 ${className}`}
+      className={`relative overflow-hidden bg-linear-to-br from-primary/20 via-base-100 to-accent/20 ${className}`}
     >
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
@@ -36,8 +38,8 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-base-content/70 mb-8 max-w-2xl mx-auto">
-            Artisan greeting cards crafted with hand-mixed inks on 100% cotton cardstock. 
-            Direct wholesale pricing for boutiques and retailers.
+            Artisan greeting cards crafted with hand-mixed inks on 100% cotton
+            cardstock. Direct wholesale pricing for boutiques and retailers.
           </p>
 
           {/* Trust indicators */}
@@ -94,10 +96,12 @@ interface PageHeroProps {
 export function PageHero({ title, subtitle, className = "" }: PageHeroProps) {
   return (
     <section
-      className={`bg-gradient-to-b from-base-200 to-base-100 py-12 md:py-16 ${className}`}
+      className={`bg-linear-to-b from-base-200 to-base-100 py-12 md:py-16 ${className}`}
     >
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl md:text-4xl font-bold text-base-content">{title}</h1>
+        <h1 className="text-3xl md:text-4xl font-bold text-base-content">
+          {title}
+        </h1>
         {subtitle && (
           <p className="text-base-content/60 mt-2 text-lg">{subtitle}</p>
         )}
@@ -105,4 +109,3 @@ export function PageHero({ title, subtitle, className = "" }: PageHeroProps) {
     </section>
   );
 }
-

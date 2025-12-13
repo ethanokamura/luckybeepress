@@ -6,7 +6,10 @@ import type { Orders } from "@/types/orders";
 import type { OrderItems } from "@/types/order_items";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { OrderStatusBadge, PaymentStatusBadge } from "@/components/ui/StatusBadge";
+import {
+  OrderStatusBadge,
+  PaymentStatusBadge,
+} from "@/components/ui/StatusBadge";
 import { OrderTotal } from "@/components/ui/PriceDisplay";
 import { ProductThumbnail } from "@/components/ui/ProductImage";
 import {
@@ -82,8 +85,15 @@ export function OrderDetail({
             <CardContent>
               <div className="divide-y divide-base-300">
                 {items.map((item) => (
-                  <div key={item.id} className="flex gap-4 py-4 first:pt-0 last:pb-0">
-                    <ProductThumbnail src={null} alt={item.product_name} size="md" />
+                  <div
+                    key={item.id}
+                    className="flex gap-4 py-4 first:pt-0 last:pb-0"
+                  >
+                    <ProductThumbnail
+                      src={item.photo_url || null}
+                      alt={item.product_name}
+                      size="md"
+                    />
                     <div className="flex-1 min-w-0">
                       <Link
                         href={`/products/${item.product_id}`}
@@ -91,13 +101,18 @@ export function OrderDetail({
                       >
                         {item.product_name}
                       </Link>
-                      <p className="text-sm text-base-content/60">SKU: {item.sku}</p>
                       <p className="text-sm text-base-content/60">
-                        Qty: {item.quantity} × {formatCurrency(Number(item.unit_wholesale_price))}
+                        SKU: {item.sku}
+                      </p>
+                      <p className="text-sm text-base-content/60">
+                        Qty: {item.quantity} ×{" "}
+                        {formatCurrency(Number(item.unit_wholesale_price))}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">{formatCurrency(Number(item.subtotal))}</p>
+                      <p className="font-semibold">
+                        {formatCurrency(Number(item.subtotal))}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -124,7 +139,9 @@ export function OrderDetail({
                     <p className="font-medium">{order.shipping_company_name}</p>
                   )}
                   <p>{order.shipping_address_1}</p>
-                  {order.shipping_address_2 && <p>{order.shipping_address_2}</p>}
+                  {order.shipping_address_2 && (
+                    <p>{order.shipping_address_2}</p>
+                  )}
                   <p>
                     {order.shipping_city}, {order.shipping_state}{" "}
                     {order.shipping_postal_code}
@@ -138,7 +155,9 @@ export function OrderDetail({
                     </h4>
                     <p className="font-mono">{order.tracking_number}</p>
                     {order.carrier && (
-                      <p className="text-sm text-base-content/60">{order.carrier}</p>
+                      <p className="text-sm text-base-content/60">
+                        {order.carrier}
+                      </p>
                     )}
                     {trackingUrl && (
                       <a
@@ -191,10 +210,14 @@ export function OrderDetail({
             <CardContent>
               <OrderTotal
                 subtotal={Number(order.subtotal)}
-                shipping={order.shipping_cost ? Number(order.shipping_cost) : undefined}
+                shipping={
+                  order.shipping_cost ? Number(order.shipping_cost) : undefined
+                }
                 tax={order.tax_amount ? Number(order.tax_amount) : undefined}
                 discount={
-                  order.discount_amount ? Number(order.discount_amount) : undefined
+                  order.discount_amount
+                    ? Number(order.discount_amount)
+                    : undefined
                 }
                 total={Number(order.total_amount)}
               />
@@ -235,7 +258,9 @@ export function OrderDetail({
                 <CardTitle>Order Notes</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-base-content/70">{order.customer_notes}</p>
+                <p className="text-sm text-base-content/70">
+                  {order.customer_notes}
+                </p>
               </CardContent>
             </Card>
           )}
@@ -244,4 +269,3 @@ export function OrderDetail({
     </div>
   );
 }
-

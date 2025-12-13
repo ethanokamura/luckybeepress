@@ -15,13 +15,17 @@ export const orderItemsSortColumns = [
   "updated_at",
 ] as const;
 
+const variantEnum = z.enum(["single", "box"]);
+
 const base = z.object({
   id: z.string().uuid().optional(),
   order_id: z.string().uuid().optional(),
   product_id: z.string().uuid().optional(),
+  photo_url: z.string().optional(),
   sku: z.string().optional(),
   product_name: z.string().optional(),
   quantity: z.coerce.number().optional(),
+  variant: variantEnum.optional(),
   unit_wholesale_price: z.coerce.number().optional(),
   unit_retail_price: z.coerce.number().optional(),
   subtotal: z.coerce.number().optional(),
@@ -46,10 +50,7 @@ export const orderItemsValidator = {
   }),
 
   query: base.extend({
-    order_by: z
-      .enum(orderItemsSortColumns)
-      .optional()
-      .default("created_at"),
+    order_by: z.enum(orderItemsSortColumns).optional().default("created_at"),
     order: z.enum(["asc", "desc"]).optional().default("desc"),
     limit: z.coerce.number().positive().max(100).optional().default(10),
     cursor: z.string().optional(),

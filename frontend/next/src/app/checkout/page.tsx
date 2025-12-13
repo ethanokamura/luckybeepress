@@ -4,7 +4,10 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { CheckoutStepper, MobileStepper } from "@/components/checkout/CheckoutStepper";
+import {
+  CheckoutStepper,
+  MobileStepper,
+} from "@/components/checkout/CheckoutStepper";
 import { AddressSelector } from "@/components/checkout/AddressSelector";
 import { PaymentSelector } from "@/components/checkout/PaymentSelector";
 import { OrderReview } from "@/components/checkout/OrderReview";
@@ -15,8 +18,9 @@ import { useCartContext } from "@/providers/CartProvider";
 import { useCustomer } from "@/hooks/useCustomer";
 import { useAddresses } from "@/hooks/useAddresses";
 import { useCreateOrder } from "@/hooks/useOrders";
+import { createOrderItems } from "@/actions/order-items";
 import type { PaymentMethod } from "@/lib/constants";
-import { PAYMENT_METHOD } from "@/lib/constants";
+import { getCartItemVariant } from "@/lib/cart-utils";
 
 const CHECKOUT_STEPS = [
   { id: "shipping", label: "Shipping" },
@@ -27,8 +31,12 @@ const CHECKOUT_STEPS = [
 export default function CheckoutPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
-  const [shippingAddressId, setShippingAddressId] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [shippingAddressId, setShippingAddressId] = useState<string | null>(
+    null
+  );
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(
+    null
+  );
   const [selectedShipping, setSelectedShipping] = useState<string>("standard");
 
   const {
@@ -53,13 +61,20 @@ export default function CheckoutPage() {
     customerId,
   });
 
-  const { createOrder, loading: orderLoading, error: orderError } = useCreateOrder();
+  const {
+    createOrder,
+    loading: orderLoading,
+    error: orderError,
+  } = useCreateOrder();
 
   // Set default shipping address when loaded
   useMemo(() => {
-    if (!shippingAddressId && defaultShippingAddress?.id) {
-      setShippingAddressId(defaultShippingAddress.id);
-    }
+    const setDefaultShippingAddress = () => {
+      if (!shippingAddressId && defaultShippingAddress?.id) {
+        setShippingAddressId(defaultShippingAddress.id);
+      }
+    };
+    setDefaultShippingAddress();
   }, [defaultShippingAddress, shippingAddressId]);
 
   // Get selected address object
@@ -87,7 +102,9 @@ export default function CheckoutPage() {
       case 1: // Payment
         return Boolean(paymentMethod);
       case 2: // Review
-        return canCheckout && Boolean(shippingAddressId) && Boolean(paymentMethod);
+        return (
+          canCheckout && Boolean(shippingAddressId) && Boolean(paymentMethod)
+        );
       default:
         return false;
     }
@@ -116,9 +133,9 @@ export default function CheckoutPage() {
     const order = await createOrder({
       order_number: orderNumber,
       customer_id: customerId,
-      shipping_company_name: selectedShippingAddress.company_name || null,
+      shipping_company_name: selectedShippingAddress.company_name || undefined,
       shipping_address_1: selectedShippingAddress.street_address_1,
-      shipping_address_2: selectedShippingAddress.street_address_2 || null,
+      shipping_address_2: selectedShippingAddress.street_address_2 || undefined,
       shipping_city: selectedShippingAddress.city,
       shipping_state: selectedShippingAddress.state,
       shipping_postal_code: selectedShippingAddress.postal_code,
@@ -131,6 +148,37 @@ export default function CheckoutPage() {
     });
 
     if (order?.id) {
+      // Create order items from cart items
+      const orderItemPromises = items.map((item) => {
+        const quantity = Number(item.quantity);
+        const unitPrice = Number(item.unit_price);
+        const variant = getCartItemVariant(item);
+
+        return createOrderItems({
+          order_id: order.id!,
+          product_id: item.product_id,
+          sku: item.product?.sku || "",
+          product_name: item.product?.name || "Unknown Product",
+          quantity,
+          variant,
+          unit_wholesale_price: unitPrice,
+          unit_retail_price: item.product?.suggested_retail_price
+            ? Number(item.product.suggested_retail_price)
+            : undefined,
+          subtotal: quantity * unitPrice,
+        });
+      });
+
+      // Wait for all order items to be created
+      const orderItemResults = await Promise.all(orderItemPromises);
+
+      // Check if any order items failed to create
+      const failedItems = orderItemResults.filter((result) => !result.success);
+      if (failedItems.length > 0) {
+        console.error("Some order items failed to create:", failedItems);
+        // Continue anyway - the order was created
+      }
+
       // Clear the cart
       await clearCart();
       // Redirect to confirmation
@@ -153,9 +201,12 @@ export default function CheckoutPage() {
     return (
       <main className="min-h-screen bg-base-100">
         <div className="container mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold mb-4">Cannot Proceed to Checkout</h1>
+          <h1 className="text-2xl font-bold mb-4">
+            Cannot Proceed to Checkout
+          </h1>
           <p className="text-base-content/60 mb-8">
-            Your cart is empty or doesn&apos;t meet the minimum order requirement.
+            Your cart is empty or doesn&apos;t meet the minimum order
+            requirement.
           </p>
           <Link href="/products">
             <Button variant="primary">Browse Products</Button>
@@ -278,7 +329,9 @@ export default function CheckoutPage() {
             </div>
 
             {orderError && (
-              <p className="text-error text-sm mt-4 text-center">{orderError}</p>
+              <p className="text-error text-sm mt-4 text-center">
+                {orderError}
+              </p>
             )}
           </div>
 
@@ -304,4 +357,3 @@ export default function CheckoutPage() {
     </main>
   );
 }
-

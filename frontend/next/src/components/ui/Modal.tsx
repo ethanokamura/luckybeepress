@@ -15,7 +15,7 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: ReactNode;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "full";
 }
 
 const sizeStyles = {
@@ -23,6 +23,7 @@ const sizeStyles = {
   md: "max-w-md",
   lg: "max-w-lg",
   xl: "max-w-xl",
+  full: "max-w-full",
 };
 
 export function Modal({
@@ -99,4 +100,3 @@ export function ModalFooter({ children, className = "" }: ModalFooterProps) {
     </div>
   );
 }
-

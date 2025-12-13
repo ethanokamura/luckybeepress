@@ -21,7 +21,11 @@ import { formatCurrency, formatDate } from "@/lib/format";
 
 export default function AccountPage() {
   const { user } = useUser();
-  const { customer, loading: customerLoading, needsRegistration } = useCustomerByAuth({
+  const {
+    customer,
+    loading: customerLoading,
+    needsRegistration,
+  } = useCustomerByAuth({
     authEmail: user?.email || null,
     authName: user?.name || null,
   });
@@ -31,7 +35,7 @@ export default function AccountPage() {
     3
   );
 
-  const { stats, loading: statsLoading } = useOrderStats(customer?.id || null);
+  const { stats } = useOrderStats(customer?.id || null);
 
   const isLoading = customerLoading;
 
@@ -41,7 +45,11 @@ export default function AccountPage() {
         <Skeleton variant="rectangular" className="h-32 rounded-xl" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} variant="rectangular" className="h-24 rounded-xl" />
+            <Skeleton
+              key={i}
+              variant="rectangular"
+              className="h-24 rounded-xl"
+            />
           ))}
         </div>
       </div>
@@ -56,7 +64,8 @@ export default function AccountPage() {
         </div>
         <h1 className="text-2xl font-bold mb-4">Complete Your Registration</h1>
         <p className="text-base-content/60 max-w-md mx-auto mb-8">
-          To start ordering, please complete your wholesale account registration.
+          To start ordering, please complete your wholesale account
+          registration.
         </p>
         <Link href="/account/settings">
           <Button variant="primary" size="lg">
@@ -75,9 +84,7 @@ export default function AccountPage() {
           <h1 className="text-2xl font-bold">
             Welcome back, {customer.contact_name || customer.business_name}
           </h1>
-          <p className="text-base-content/60 mt-1">
-            {customer.business_name}
-          </p>
+          <p className="text-base-content/60 mt-1">{customer.business_name}</p>
         </div>
         <AccountStatusBadge status={customer.account_status} />
       </div>
@@ -136,7 +143,9 @@ export default function AccountPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {customer.net_terms ? `Net ${customer.net_terms}` : "Credit Card"}
+                  {customer.net_terms
+                    ? `Net ${customer.net_terms}`
+                    : "Credit Card"}
                 </p>
                 <p className="text-sm text-base-content/60">Payment Terms</p>
               </div>
@@ -150,7 +159,11 @@ export default function AccountPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Recent Orders</CardTitle>
           <Link href="/account/orders">
-            <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="h-4 w-4" />}>
+            <Button
+              variant="ghost"
+              size="sm"
+              rightIcon={<ArrowRight className="h-4 w-4" />}
+            >
               View All
             </Button>
           </Link>
@@ -159,7 +172,11 @@ export default function AccountPage() {
           {ordersLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} variant="rectangular" className="h-16 rounded-lg" />
+                <Skeleton
+                  key={i}
+                  variant="rectangular"
+                  className="h-16 rounded-lg"
+                />
               ))}
             </div>
           ) : recentOrders.length === 0 ? (
@@ -240,7 +257,9 @@ export default function AccountPage() {
             {customer.first_order_date && (
               <div>
                 <p className="text-sm text-base-content/60">Customer Since</p>
-                <p className="font-medium">{formatDate(customer.first_order_date)}</p>
+                <p className="font-medium">
+                  {formatDate(customer.first_order_date)}
+                </p>
               </div>
             )}
           </div>
@@ -249,4 +268,3 @@ export default function AccountPage() {
     </div>
   );
 }
-

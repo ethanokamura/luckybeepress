@@ -55,7 +55,7 @@ export function FeaturedSection({
 
 // Pre-built Best Sellers section
 export function BestSellersSection({ className = "" }: { className?: string }) {
-  const { products, loading } = useBestSellers(8);
+  const { products, loading } = useBestSellers(4);
 
   return (
     <FeaturedSection
@@ -64,18 +64,14 @@ export function BestSellersSection({ className = "" }: { className?: string }) {
       viewAllLink="/products?sort=bestsellers"
       className={className}
     >
-      <ProductGrid
-        products={products}
-        loading={loading}
-        columns={4}
-      />
+      <ProductGrid products={products} loading={loading} columns={4} />
     </FeaturedSection>
   );
 }
 
 // Pre-built New Arrivals section
 export function NewArrivalsSection({ className = "" }: { className?: string }) {
-  const { products, loading } = useNewArrivals(8);
+  const { products, loading } = useNewArrivals(4);
 
   return (
     <FeaturedSection
@@ -84,11 +80,7 @@ export function NewArrivalsSection({ className = "" }: { className?: string }) {
       viewAllLink="/products?sort=newest"
       className={className}
     >
-      <ProductGrid
-        products={products}
-        loading={loading}
-        columns={4}
-      />
+      <ProductGrid products={products} loading={loading} columns={4} />
     </FeaturedSection>
   );
 }
@@ -135,4 +127,3 @@ export function FeaturedProductsSection({
     </section>
   );
 }
-

@@ -7,6 +7,7 @@ export interface OrderItems {
   quantity: number;
   variant: string;
   unit_wholesale_price: number;
+  photo_url: string | null;
   unit_retail_price: number | null;
   subtotal: number;
   status: string | null;

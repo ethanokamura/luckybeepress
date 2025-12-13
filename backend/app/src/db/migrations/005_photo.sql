@@ -1,0 +1,5 @@
+BEGIN;
+
+ALTER TABLE order_items ADD COLUMN photo_url VARCHAR(500);
+
+COMMIT;

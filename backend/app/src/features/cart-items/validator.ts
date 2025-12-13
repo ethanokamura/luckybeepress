@@ -1,11 +1,12 @@
 import { z } from "zod";
-import {
-  cartItemsSortColumns,
-} from "./columns.ts";
+import { cartItemsSortColumns } from "./columns.ts";
+
+const variantEnum = z.enum(["single", "box"]);
 
 const base = z.object({
   cart_id: z.string().optional(),
   product_id: z.string().optional(),
+  variant: variantEnum.optional(),
   quantity: z.coerce.number().optional(),
   unit_price: z.coerce.number().optional(),
 });
@@ -23,10 +24,7 @@ export const cartItemsValidator = {
   }),
 
   query: base.extend({
-    order_by: z
-      .enum(cartItemsSortColumns)
-      .optional()
-      .default("created_at"),
+    order_by: z.enum(cartItemsSortColumns).optional().default("created_at"),
     order: z.enum(["asc", "desc"]).optional().default("desc"),
     limit: z.coerce.number().positive().max(100).optional().default(10),
     cursor: z.string().optional(),

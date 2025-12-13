@@ -5,6 +5,7 @@ export interface Customers {
   email: string;
   phone: string | null;
   tax_id: string | null;
+  is_admin: boolean;
   account_status: string | null;
   net_terms: number | null;
   discount_percentage: number | null;

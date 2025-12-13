@@ -1,7 +1,6 @@
 import { z } from "zod";
-import {
-  customersSortColumns,
-} from "./columns.ts";
+import { customersSortColumns } from "./columns.ts";
+import { booleanFromString } from "../../utils/validator.ts";
 
 const base = z.object({
   business_name: z.string().optional(),
@@ -9,6 +8,7 @@ const base = z.object({
   email: z.string().optional(),
   phone: z.string().optional(),
   tax_id: z.string().optional(),
+  is_admin: booleanFromString.optional(),
   account_status: z.string().optional(),
   net_terms: z.coerce.number().optional(),
   discount_percentage: z.coerce.number().optional(),
@@ -29,10 +29,7 @@ export const customersValidator = {
   }),
 
   query: base.extend({
-    order_by: z
-      .enum(customersSortColumns)
-      .optional()
-      .default("created_at"),
+    order_by: z.enum(customersSortColumns).optional().default("created_at"),
     order: z.enum(["asc", "desc"]).optional().default("desc"),
     limit: z.coerce.number().positive().max(100).optional().default(10),
     cursor: z.string().optional(),

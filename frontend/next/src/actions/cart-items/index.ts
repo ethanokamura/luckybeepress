@@ -3,17 +3,14 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createApiClient } from "@/lib/api-client";
-import { 
-  handleAxiosError, 
-  ActionResponse 
-} from "@/lib/api-client-utils";
+import { handleAxiosError, ActionResponse } from "@/lib/api-client-utils";
 import {
   cartItemsValidator,
   CreateCartItemsInput,
   QueryCartItemsInput,
   UpdateCartItemsInput,
 } from "./validators";
-import type { CartItems } from "@/types/cart-items";
+import type { CartItems } from "@/types/cart_items";
 
 const resource = "cart-items";
 const revalidatePaths = ["/cart-items", "/dashboard"];
