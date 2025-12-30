@@ -171,3 +171,48 @@ export function generateSlug(name: string): string {
     .replace(/[\s_-]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+// ============================================
+// Wholesale Pricing Helpers
+// ============================================
+
+import { WHOLESALE_PRICING } from "@/types/products";
+
+/** Calculate total for single cards */
+export function calculateSingleTotal(
+  priceInCents: number,
+  quantity: number
+): number {
+  return priceInCents * quantity;
+}
+
+/** Calculate total for box sets */
+export function calculateBoxTotal(
+  boxPriceInCents: number,
+  boxQuantity: number
+): number {
+  return boxPriceInCents * boxQuantity;
+}
+
+/** Get minimum order display text for singles */
+export function getSingleOrderInfo(): string {
+  return `Min. ${WHOLESALE_PRICING.SINGLE_MIN_QTY} cards`;
+}
+
+/** Get minimum order display text for boxes */
+export function getBoxOrderInfo(): string {
+  return `Min. ${WHOLESALE_PRICING.BOX_MIN_QTY} boxes (${WHOLESALE_PRICING.CARDS_PER_BOX} cards each)`;
+}
+
+/** Format wholesale pricing display */
+export function formatWholesaleInfo(
+  wholesalePrice: number,
+  hasBoxOption: boolean,
+  boxPrice: number | null
+): string {
+  const singleText = `${formatPrice(wholesalePrice)}/card`;
+  if (hasBoxOption && boxPrice) {
+    return `${singleText} or ${formatPrice(boxPrice)}/box`;
+  }
+  return singleText;
+}
