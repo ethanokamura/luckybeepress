@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   getDocs,
@@ -14,16 +14,18 @@ import {
   OrderByDirection,
 } from "firebase/firestore";
 import { collections } from "@/lib/firebase-helpers";
+import { searchProducts, AlgoliaProductHit } from "@/lib/algolia";
 import { AuthGuard } from "@/components/shared/AuthGuard";
 import { ProductCard } from "@/components/shared/ProductCard";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowUpDown, Check, Filter } from "lucide-react";
+import { ArrowUpDown, Check, Filter, Search, X } from "lucide-react";
 import type { Product } from "@/types";
 import Image from "next/image";
 
@@ -36,8 +38,8 @@ type SortOption = {
 };
 
 const SORT_OPTIONS: SortOption[] = [
-  { label: "Newest First", field: "sku", direction: "desc" },
-  { label: "Oldest First", field: "sku", direction: "asc" },
+  { label: "Newest First", field: "sku", direction: "asc" },
+  { label: "Oldest First", field: "sku", direction: "desc" },
   { label: "Name (A-Z)", field: "name", direction: "asc" },
   { label: "Name (Z-A)", field: "name", direction: "desc" },
   { label: "Most Popular", field: "salesCount", direction: "desc" },
@@ -74,6 +76,7 @@ function ProductsContent() {
   const initialCategory = searchParams.get("category") || "All";
   const initialPage = parseInt(searchParams.get("page") || "1", 10);
   const initialSort = searchParams.get("sort") || "createdAt-desc";
+  const initialSearch = searchParams.get("q") || "";
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,12 +86,20 @@ function ProductsContent() {
   const [totalProducts, setTotalProducts] = useState(0);
   const [sortBy, setSortBy] = useState(initialSort);
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [searchResults, setSearchResults] = useState<AlgoliaProductHit[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchTotal, setSearchTotal] = useState(0);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Use ref for cursor cache to avoid re-render loops
   const lastDocsRef = useRef<Map<number, QueryDocumentSnapshot<Product>>>(
     new Map()
   );
 
   const totalPages = Math.ceil(totalProducts / PRODUCTS_PER_PAGE);
+  const isSearchMode = searchQuery.trim().length > 0;
 
   // Fetch distinct categories from products collection (once on mount)
   useEffect(() => {
@@ -114,6 +125,74 @@ function ProductsContent() {
 
     fetchCategories();
   }, []);
+
+  // Debounced search function
+  const performSearch = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setSearchTotal(0);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const result = await searchProducts(query, {
+        hitsPerPage: PRODUCTS_PER_PAGE,
+        // Note: To use filters like 'status:active', configure 'status' as
+        // attributesForFaceting in Algolia index settings
+      });
+      // Filter to only show active products client-side
+      const activeHits = result.hits.filter(
+        (hit) => hit.status === "active" || !hit.status
+      );
+      setSearchResults(activeHits);
+      setSearchTotal(activeHits.length);
+    } catch (error) {
+      console.error("Search error:", error);
+      setSearchResults([]);
+      setSearchTotal(0);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  // Handle search input with debounce
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (searchQuery.trim()) {
+      setIsSearching(true);
+      searchTimeoutRef.current = setTimeout(() => {
+        performSearch(searchQuery);
+      }, 300);
+    } else {
+      setSearchResults([]);
+      setSearchTotal(0);
+      setIsSearching(false);
+    }
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery, performSearch]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (value.trim()) {
+      setCurrentPage(1);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setSearchTotal(0);
+  };
 
   const getCurrentSort = (): SortOption => {
     const [field, direction] = sortBy.split("-");
@@ -225,9 +304,12 @@ function ProductsContent() {
     };
   }, [selectedCategory, currentPage, sortBy]);
 
-  // Update URL when category, page, or sort changes
+  // Update URL when category, page, sort, or search changes
   useEffect(() => {
     const params = new URLSearchParams();
+    if (searchQuery.trim()) {
+      params.set("q", searchQuery.trim());
+    }
     if (selectedCategory !== "All") {
       params.set("category", selectedCategory);
     }
@@ -239,7 +321,7 @@ function ProductsContent() {
     }
     const newUrl = params.toString() ? `?${params.toString()}` : "";
     router.replace(`/products${newUrl}`, { scroll: false });
-  }, [selectedCategory, currentPage, sortBy, router]);
+  }, [selectedCategory, currentPage, sortBy, searchQuery, router]);
 
   const handleCategoryChange = (category: string) => {
     if (category !== selectedCategory) {
@@ -276,6 +358,27 @@ function ProductsContent() {
             Browse our collection of artisan letterpress cards
           </p>
         </div>
+
+        {/* Search Bar */}
+        <div className="relative mb-4 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search by name, SKU, or category..."
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-10 pr-10"
+          />
+          {searchQuery && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
         <div className="flex gap-2 mb-4 w-fit">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -337,15 +440,19 @@ function ProductsContent() {
 
         {/* Results count */}
         <div className="mb-4 text-sm text-muted-foreground">
-          {loading ? (
+          {loading || isSearching ? (
             <span className="inline-block h-4 w-24 bg-muted animate-pulse rounded" />
+          ) : isSearchMode ? (
+            <span>
+              {searchTotal} search results for &quot;{searchQuery}&quot;
+            </span>
           ) : (
             <span>{totalProducts} products</span>
           )}
         </div>
 
         {/* Products Grid */}
-        {loading ? (
+        {loading || isSearching ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
             {[...Array(PRODUCTS_PER_PAGE)].map((_, i) => (
               <div
@@ -353,6 +460,41 @@ function ProductsContent() {
                 className="aspect-square bg-muted animate-pulse rounded-lg"
               />
             ))}
+          </div>
+        ) : isSearchMode && searchResults.length > 0 ? (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
+              {searchResults.map((hit) => (
+                <ProductCard
+                  key={hit.objectID}
+                  product={{
+                    id: hit.objectID,
+                    name: hit.name,
+                    slug: hit.slug,
+                    wholesalePrice: hit.wholesalePrice ?? 0,
+                    retailPrice: hit.retailPrice ?? 0,
+                    hasBoxOption: hit.hasBoxOption ?? false,
+                    boxWholesalePrice: hit.boxWholesalePrice ?? null,
+                    images: hit.images ?? [],
+                    category: hit.category,
+                    inventory: hit.inventory ?? 0,
+                    status:
+                      (hit.status as "active" | "draft" | "archived") ??
+                      "active",
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        ) : isSearchMode && searchResults.length === 0 ? (
+          <div className="text-center py-16">
+            <Search className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+            <p className="text-muted-foreground">
+              No products found for &quot;{searchQuery}&quot;
+            </p>
+            <Button variant="link" onClick={clearSearch} className="mt-2">
+              Clear search
+            </Button>
           </div>
         ) : products.length > 0 ? (
           <>
@@ -362,8 +504,8 @@ function ProductsContent() {
               ))}
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
+            {/* Pagination - only show when not in search mode */}
+            {!isSearchMode && totalPages > 1 && (
               <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <div className="flex items-center gap-2">
                   <Button

@@ -1,0 +1,111 @@
+[debug] [2026-01-12T04:18:19.811Z] ----------------------------------------------------------------------
+[debug] [2026-01-12T04:18:19.812Z] Command:       /opt/homebrew/Cellar/node/24.7.0/bin/node /opt/homebrew/bin/firebase deploy --only functions
+[debug] [2026-01-12T04:18:19.812Z] CLI Version:   13.35.1
+[debug] [2026-01-12T04:18:19.813Z] Platform:      darwin
+[debug] [2026-01-12T04:18:19.813Z] Node Version:  v24.7.0
+[debug] [2026-01-12T04:18:19.813Z] Time:          Sun Jan 11 2026 20:18:19 GMT-0800 (Pacific Standard Time)
+[debug] [2026-01-12T04:18:19.813Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-01-12T04:18:19.894Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-12T04:18:19.894Z] > authorizing via signed-in user (ethanokamura3@gmail.com)
+[debug] [2026-01-12T04:18:19.894Z] [iam] checking project lucky-bee-press for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2026-01-12T04:18:19.894Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:19.894Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:19.895Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/lucky-bee-press:testIamPermissions [none]
+[debug] [2026-01-12T04:18:19.895Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/lucky-bee-press:testIamPermissions x-goog-quota-user=projects/lucky-bee-press
+[debug] [2026-01-12T04:18:19.895Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/lucky-bee-press:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2026-01-12T04:18:20.076Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/lucky-bee-press:testIamPermissions 200
+[debug] [2026-01-12T04:18:20.077Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/lucky-bee-press:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2026-01-12T04:18:20.077Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:20.077Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:20.077Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/lucky-bee-press/serviceAccounts/lucky-bee-press@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2026-01-12T04:18:20.077Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/lucky-bee-press/serviceAccounts/lucky-bee-press@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2026-01-12T04:18:20.262Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/lucky-bee-press/serviceAccounts/lucky-bee-press@appspot.gserviceaccount.com:testIamPermissions 200
+[debug] [2026-01-12T04:18:20.262Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/lucky-bee-press/serviceAccounts/lucky-bee-press@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[info] 
+[info] === Deploying to 'lucky-bee-press'...
+[info] 
+[info] i  deploying functions 
+[info] Running command: npm --prefix "$RESOURCE_DIR" run build
+[info] ✔  functions: Finished running predeploy script. 
+[debug] [2026-01-12T04:18:21.403Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:21.403Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:21.403Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/lucky-bee-press [none]
+[debug] [2026-01-12T04:18:21.538Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/lucky-bee-press 200
+[debug] [2026-01-12T04:18:21.538Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/lucky-bee-press {"projectNumber":"310379788644","projectId":"lucky-bee-press","lifecycleState":"ACTIVE","name":"Lucky Bee Press","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-12-29T20:01:54.721376Z"}
+[info] i  functions: preparing codebase default for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[debug] [2026-01-12T04:18:21.539Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:21.539Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:21.539Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:21.539Z] Checked if tokens are valid: true, expires at: 1768194733651
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[debug] [2026-01-12T04:18:21.539Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:21.539Z] Checked if tokens are valid: true, expires at: 1768194733651
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2026-01-12T04:18:21.539Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:21.539Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:21.539Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-01-12T04:18:21.539Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/lucky-bee-press
+[debug] [2026-01-12T04:18:21.540Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/runtimeconfig.googleapis.com [none]
+[debug] [2026-01-12T04:18:21.540Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/runtimeconfig.googleapis.com x-goog-quota-user=projects/lucky-bee-press
+[debug] [2026-01-12T04:18:21.540Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/cloudbuild.googleapis.com [none]
+[debug] [2026-01-12T04:18:21.540Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/cloudbuild.googleapis.com x-goog-quota-user=projects/lucky-bee-press
+[debug] [2026-01-12T04:18:21.541Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/artifactregistry.googleapis.com [none]
+[debug] [2026-01-12T04:18:21.541Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/artifactregistry.googleapis.com x-goog-quota-user=projects/lucky-bee-press
+[debug] [2026-01-12T04:18:21.939Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/runtimeconfig.googleapis.com 200
+[debug] [2026-01-12T04:18:21.939Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/runtimeconfig.googleapis.com [omitted]
+[debug] [2026-01-12T04:18:21.940Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/cloudfunctions.googleapis.com 200
+[debug] [2026-01-12T04:18:21.940Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/cloudfunctions.googleapis.com [omitted]
+[info] ✔  functions: required API cloudfunctions.googleapis.com is enabled 
+[debug] [2026-01-12T04:18:21.941Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/cloudbuild.googleapis.com 200
+[debug] [2026-01-12T04:18:21.941Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/cloudbuild.googleapis.com [omitted]
+[info] ✔  functions: required API cloudbuild.googleapis.com is enabled 
+[debug] [2026-01-12T04:18:21.950Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/artifactregistry.googleapis.com 200
+[debug] [2026-01-12T04:18:21.950Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/lucky-bee-press/services/artifactregistry.googleapis.com [omitted]
+[info] ✔  artifactregistry: required API artifactregistry.googleapis.com is enabled 
+[debug] [2026-01-12T04:18:21.950Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:21.950Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:21.951Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/lucky-bee-press/adminSdkConfig [none]
+[debug] [2026-01-12T04:18:22.280Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/lucky-bee-press/adminSdkConfig 200
+[debug] [2026-01-12T04:18:22.280Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/lucky-bee-press/adminSdkConfig {"projectId":"lucky-bee-press","storageBucket":"lucky-bee-press.firebasestorage.app"}
+[debug] [2026-01-12T04:18:22.280Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:22.280Z] Checked if tokens are valid: true, expires at: 1768194733651
+[debug] [2026-01-12T04:18:22.281Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/lucky-bee-press/configs [none]
+[debug] [2026-01-12T04:18:22.542Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/lucky-bee-press/configs 200
+[debug] [2026-01-12T04:18:22.542Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/lucky-bee-press/configs {}
+[debug] [2026-01-12T04:18:22.543Z] Validating nodejs source
+[warn] ⚠  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] ⚠  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2026-01-12T04:18:22.980Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "firebase-functions-test": "^3.2.0"
+  },
+  "private": true
+}
+[debug] [2026-01-12T04:18:22.980Z] Building nodejs source
+[info] i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[debug] [2026-01-12T04:18:22.981Z] Could not find functions.yaml. Must use http discovery
+[debug] [2026-01-12T04:18:22.985Z] Found firebase-functions binary at '/Users/ethanokamura/Documents/luckybeepress/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8538
+
+[debug] [2026-01-12T04:18:23.258Z] Got response from /__/functions.yaml {"endpoints":{"onUserCreated":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/firebase.auth/eventTypes/user.create","eventFilters":{"resource":"projects/lucky-bee-press"},"retry":false},"labels":{},"entryPoint":"onUserCreated"},"onOrderCreated":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","eventFilters":{"resource":"projects/lucky-bee-press/databases/(default)/documents/orders/{orderId}"},"retry":false},"labels":{},"entryPoint":"onOrderCreated"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
