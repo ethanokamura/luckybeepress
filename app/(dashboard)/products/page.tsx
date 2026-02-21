@@ -25,7 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowUpDown, Check, Filter, Search, X } from "lucide-react";
+import { ArrowUpDown, Check, Filter, Search, Star, X } from "lucide-react";
 import type { Product } from "@/types";
 import Image from "next/image";
 
@@ -98,8 +98,34 @@ function ProductsContent() {
     new Map()
   );
 
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+
   const totalPages = Math.ceil(totalProducts / PRODUCTS_PER_PAGE);
   const isSearchMode = searchQuery.trim().length > 0;
+
+  // Fetch featured products once on mount
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const q = query(
+          collections.products,
+          where("featured", "==", true),
+          where("status", "==", "active"),
+          limit(12)
+        );
+        const snap = await getDocs(q);
+        const items = snap.docs.map((d) => d.data());
+        // Sort client-side by featuredOrder ascending (null/undefined last)
+        items.sort(
+          (a, b) => (a.featuredOrder ?? Infinity) - (b.featuredOrder ?? Infinity)
+        );
+        setFeaturedProducts(items);
+      } catch (error) {
+        console.error("Error fetching featured products:", error);
+      }
+    };
+    fetchFeatured();
+  }, []);
 
   // Fetch distinct categories from products collection (once on mount)
   useEffect(() => {
@@ -358,6 +384,22 @@ function ProductsContent() {
             Browse our collection of artisan letterpress cards
           </p>
         </div>
+
+        {/* Featured Products Section */}
+        {!isSearchMode && featuredProducts.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center gap-2 mb-4">
+              <Star className="w-5 h-5" fill="currentColor" style={{ color: "#f59e0b" }} />
+              <h2 className="text-xl font-semibold">Featured Products</h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+            <div className="mt-6 border-t" />
+          </div>
+        )}
 
         {/* Search Bar */}
         <div className="relative mb-4 max-w-md">

@@ -99,6 +99,7 @@ export default function NewProductPage() {
           : [],
         status: formData.status,
         featured: formData.featured,
+        featuredOrder: null,
 
         // Wholesale pricing
         wholesalePrice: toCents(parseFloat(formData.wholesalePrice) || 3),

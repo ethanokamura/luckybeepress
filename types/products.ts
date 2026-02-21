@@ -13,6 +13,7 @@ export interface Product extends FirebaseDoc {
   tags: string[];
   status: ProductStatus;
   featured: boolean;
+  featuredOrder: number | null;
 
   // Wholesale pricing (all in cents)
   wholesalePrice: number; // $3.00 = 300 (per card)

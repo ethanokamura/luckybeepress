@@ -25,6 +25,8 @@ export interface AlgoliaProductHit {
   status?: string;
   inventory?: number;
   tags?: string[];
+  featured?: boolean;
+  featuredOrder?: number | null;
 }
 
 export async function searchProducts(
