@@ -79,6 +79,22 @@ export default function AdminProductsPage() {
   const [featuredCount, setFeaturedCount] = useState(0);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectAllMode, setSelectAllMode] = useState(false);
+  const [allCategoryTotal, setAllCategoryTotal] = useState(0);
+  const [isFetchingAllIds, setIsFetchingAllIds] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  type BulkAction = "status" | "category" | "delete";
+  const [bulkAction, setBulkAction] = useState<BulkAction | null>(null);
+  const [bulkStatusValue, setBulkStatusValue] = useState<"draft" | "active" | "archived">("active");
+  const [bulkCategoryValue, setBulkCategoryValue] = useState("");
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{
+    running: boolean; done: boolean; error: string | null;
+  }>({ running: false, done: false, error: null });
+
   const MAX_FEATURED = 12;
 
   // Use ref for cursor cache to avoid re-render loops
@@ -245,12 +261,97 @@ export default function AdminProductsPage() {
     );
   };
 
-  // Fetch products when category, page, or sort changes
+  // Bulk selection helpers
+  const visibleIds = isSearchMode
+    ? searchResults.map((h) => h.objectID)
+    : products.map((p) => p.id);
+
+  const allVisibleSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+    setSelectAllMode(false);
+  };
+
+  const toggleSelectAll = () => {
+    if (allVisibleSelected) {
+      setSelectedIds(new Set());
+      setSelectAllMode(false);
+    } else {
+      setSelectedIds(new Set(visibleIds));
+    }
+  };
+
+  const handleSelectAllInCategory = async () => {
+    setIsFetchingAllIds(true);
+    try {
+      const q = selectedCategory === "All"
+        ? query(collections.products)
+        : query(collections.products, where("category", "==", selectedCategory));
+      const snap = await getDocs(q);
+      const ids = snap.docs.map((d) => d.id);
+      setAllCategoryTotal(ids.length);
+      setSelectedIds(new Set(ids));
+      setSelectAllMode(true);
+    } finally {
+      setIsFetchingAllIds(false);
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    setSelectAllMode(false);
+    setAllCategoryTotal(0);
+    setBulkAction(null);
+  };
+
+  const executeBulkAction = async () => {
+    if (!bulkAction || selectedIds.size === 0) return;
+    setBulkProgress({ running: true, done: false, error: null });
+    try {
+      const body: Record<string, unknown> = {
+        action: bulkAction,
+        productIds: Array.from(selectedIds),
+      };
+      if (bulkAction === "status") body.status = bulkStatusValue;
+      if (bulkAction === "category") body.category = bulkCategoryValue;
+
+      const res = await fetch("/api/admin/products/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Bulk operation failed");
+      }
+      setBulkProgress({ running: false, done: true, error: null });
+      setTimeout(() => {
+        clearSelection();
+        setBulkConfirmOpen(false);
+        setBulkProgress({ running: false, done: false, error: null });
+        setRefreshKey((k) => k + 1);
+      }, 1500);
+    } catch (err) {
+      setBulkProgress({
+        running: false, done: false,
+        error: err instanceof Error ? err.message : "Unknown error",
+      });
+    }
+  };
+
+  // Fetch products when category, page, sort, or refreshKey changes
   useEffect(() => {
     let isCancelled = false;
 
     const fetchData = async () => {
       setLoading(true);
+      setSelectedIds(new Set());
 
       try {
         const [field, direction] = sortBy.split("-");
@@ -344,7 +445,7 @@ export default function AdminProductsPage() {
     return () => {
       isCancelled = true;
     };
-  }, [selectedCategory, currentPage, sortBy]);
+  }, [selectedCategory, currentPage, sortBy, refreshKey]);
 
   // Update URL when category, page, sort, or search changes
   useEffect(() => {
@@ -460,6 +561,54 @@ export default function AdminProductsPage() {
           </span>
         </div>
 
+        {/* Bulk action toolbar */}
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-3 px-4 py-3 bg-card border rounded-lg">
+            <span className="text-sm font-medium">
+              {selectedIds.size} selected
+              {selectAllMode && (
+                <span className="text-xs text-muted-foreground ml-1">
+                  (all {allCategoryTotal} in {selectedCategory === "All" ? "catalog" : selectedCategory})
+                </span>
+              )}
+            </span>
+            <div className="flex items-center gap-2 ml-auto">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">Change Status</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {(["active", "draft", "archived"] as const).map((s) => (
+                    <DropdownMenuItem key={s} onClick={() => {
+                      setBulkStatusValue(s); setBulkAction("status"); setBulkConfirmOpen(true);
+                    }}>
+                      {s.charAt(0).toUpperCase() + s.slice(1)}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">Change Category</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {categories.filter((c) => c !== "All").map((c) => (
+                    <DropdownMenuItem key={c} onClick={() => {
+                      setBulkCategoryValue(c); setBulkAction("category"); setBulkConfirmOpen(true);
+                    }}>{c}</DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button variant="destructive" size="sm" onClick={() => {
+                setBulkAction("delete"); setBulkConfirmOpen(true);
+              }}>Delete</Button>
+              <Button variant="ghost" size="sm" onClick={clearSelection}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-2 mb-4 w-fit">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -519,12 +668,40 @@ export default function AdminProductsPage() {
           </DropdownMenu>
         </div>
 
+        {/* Select all in category banner (browse mode only) */}
+        {!isSearchMode && allVisibleSelected && !selectAllMode && totalProducts > products.length && (
+          <div className="flex items-center gap-3 px-4 py-2 bg-muted border rounded-md text-sm">
+            {isFetchingAllIds ? (
+              <span className="text-muted-foreground">Loading…</span>
+            ) : (
+              <>
+                <span>All {products.length} on this page selected.</span>
+                <button
+                  className="text-primary font-medium hover:underline"
+                  onClick={handleSelectAllInCategory}
+                >
+                  Select all {totalProducts} in{" "}
+                  {selectedCategory === "All" ? "all categories" : selectedCategory}?
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Search Results */}
         {isSearchMode && !isSearching && searchResults.length > 0 ? (
           <div className="bg-card border rounded-lg overflow-hidden">
             <Table className="w-full">
               <TableHeader className="bg-muted/50">
                 <TableRow>
+                  <TableHead className="p-4 w-10">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      onChange={toggleSelectAll}
+                      className="cursor-pointer"
+                    />
+                  </TableHead>
                   <TableHead className="text-left p-4 font-medium">
                     Product
                   </TableHead>
@@ -547,7 +724,18 @@ export default function AdminProductsPage() {
               </TableHeader>
               <TableBody className="divide-y">
                 {searchResults.map((hit) => (
-                  <TableRow key={hit.objectID} className="hover:bg-muted/30">
+                  <TableRow
+                    key={hit.objectID}
+                    className={`hover:bg-muted/30 ${selectedIds.has(hit.objectID) ? "bg-muted/20" : ""}`}
+                  >
+                    <TableCell className="p-4 w-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(hit.objectID)}
+                        onChange={() => toggleSelect(hit.objectID)}
+                        className="cursor-pointer"
+                      />
+                    </TableCell>
                     <TableCell className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="relative w-12 h-12 rounded bg-muted overflow-hidden shrink-0">
@@ -643,6 +831,14 @@ export default function AdminProductsPage() {
             <Table className="w-full">
               <TableHeader className="bg-muted/50">
                 <TableRow>
+                  <TableHead className="p-4 w-10">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      onChange={toggleSelectAll}
+                      className="cursor-pointer"
+                    />
+                  </TableHead>
                   <TableHead className="text-left p-4 font-medium">
                     Product
                   </TableHead>
@@ -665,7 +861,18 @@ export default function AdminProductsPage() {
               </TableHeader>
               <TableBody className="divide-y">
                 {products.map((product) => (
-                  <TableRow key={product.id} className="hover:bg-muted/30">
+                  <TableRow
+                    key={product.id}
+                    className={`hover:bg-muted/30 ${selectedIds.has(product.id) ? "bg-muted/20" : ""}`}
+                  >
+                    <TableCell className="p-4 w-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(product.id)}
+                        onChange={() => toggleSelect(product.id)}
+                        className="cursor-pointer"
+                      />
+                    </TableCell>
                     <TableCell className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="relative w-12 h-12 rounded bg-muted overflow-hidden shrink-0">
@@ -790,6 +997,85 @@ export default function AdminProductsPage() {
             <span className="text-sm text-muted-foreground">
               Page {currentPage} of {totalPages}
             </span>
+          </div>
+        )}
+
+        {/* Bulk action confirmation/progress modal */}
+        {bulkConfirmOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={() => !bulkProgress.running && setBulkConfirmOpen(false)}
+            />
+            <div className="relative z-10 bg-background border rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
+              {bulkProgress.running ? (
+                <div className="text-center space-y-4">
+                  <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                  <p className="text-sm font-medium">Processing {selectedIds.size} products…</p>
+                  <p className="text-xs text-muted-foreground">Do not close this tab.</p>
+                </div>
+              ) : bulkProgress.done ? (
+                <div className="text-center space-y-4">
+                  <Check className="mx-auto w-8 h-8 text-green-600" />
+                  <p className="font-medium">Done!</p>
+                  <p className="text-sm text-muted-foreground">Products updated successfully.</p>
+                </div>
+              ) : bulkProgress.error ? (
+                <div className="space-y-4">
+                  <p className="font-semibold text-destructive">Error</p>
+                  <p className="text-sm">{bulkProgress.error}</p>
+                  <div className="flex gap-2 justify-end">
+                    <Button variant="outline" size="sm" onClick={() => setBulkConfirmOpen(false)}>Close</Button>
+                    <Button size="sm" onClick={executeBulkAction}>Retry</Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold">Confirm Bulk Action</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {bulkAction === "delete" && (
+                      <>
+                        <span className="text-destructive font-medium">Permanently delete </span>
+                        {selectedIds.size} product{selectedIds.size !== 1 ? "s" : ""}? This cannot be undone.
+                      </>
+                    )}
+                    {bulkAction === "status" && (
+                      <>
+                        Set {selectedIds.size} product{selectedIds.size !== 1 ? "s" : ""} to{" "}
+                        <span className="font-medium">{bulkStatusValue}</span>?
+                      </>
+                    )}
+                    {bulkAction === "category" && (
+                      <>
+                        Move {selectedIds.size} product{selectedIds.size !== 1 ? "s" : ""} to{" "}
+                        <span className="font-medium">{bulkCategoryValue}</span>?
+                      </>
+                    )}
+                  </p>
+                  {bulkAction === "delete" && (
+                    <p className="text-xs bg-destructive/10 text-destructive px-3 py-2 rounded-md">
+                      Products will also be removed from Algolia search.
+                    </p>
+                  )}
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => { setBulkConfirmOpen(false); setBulkAction(null); }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant={bulkAction === "delete" ? "destructive" : "default"}
+                      size="sm"
+                      onClick={executeBulkAction}
+                    >
+                      {bulkAction === "delete" ? "Delete" : "Apply"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
