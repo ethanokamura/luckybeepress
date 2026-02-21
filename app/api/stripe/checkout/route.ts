@@ -27,6 +27,7 @@ interface CheckoutRequestBody {
   notes?: string;
   subtotal: number;
   discount: number;
+  shippingCost: number;
 }
 
 export async function POST(request: NextRequest) {
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
       notes,
       subtotal,
       discount,
+      shippingCost,
     } = body;
 
     // Validate request
@@ -82,6 +84,7 @@ export async function POST(request: NextRequest) {
       })),
       subtotal,
       discount,
+      shippingCost,
       createdAt: new Date(),
       status: "pending",
     };
@@ -102,6 +105,18 @@ export async function POST(request: NextRequest) {
         quantity: item.quantity,
       })
     );
+
+    // Add shipping as a line item if applicable
+    if (shippingCost > 0) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: { name: "Shipping" },
+          unit_amount: shippingCost,
+        },
+        quantity: 1,
+      });
+    }
 
     // Handle discount with Stripe coupon if applicable
     let discounts: Stripe.Checkout.SessionCreateParams.Discount[] | undefined;

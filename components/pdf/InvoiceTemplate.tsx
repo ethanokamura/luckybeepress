@@ -385,6 +385,36 @@ export function InvoiceTemplate({ order, orderDate }: InvoiceTemplateProps) {
             </View>
           ))}
         </View>
+
+        {/* Totals */}
+        <View style={styles.totalsSection}>
+          <View style={styles.totalsRow}>
+            <Text style={styles.totalsLabel}>Subtotal</Text>
+            <Text style={styles.totalsValue}>{formatPrice(itemSubtotals)}</Text>
+          </View>
+          {order.discount > 0 && (
+            <View style={styles.totalsRow}>
+              <Text style={styles.totalsLabel}>Discount</Text>
+              <Text style={styles.totalsValue}>-{formatPrice(order.discount)}</Text>
+            </View>
+          )}
+          {order.shippingCost > 0 && (
+            <View style={styles.totalsRow}>
+              <Text style={styles.totalsLabel}>Shipping</Text>
+              <Text style={styles.totalsValue}>{formatPrice(order.shippingCost)}</Text>
+            </View>
+          )}
+          {order.tax > 0 && (
+            <View style={styles.totalsRow}>
+              <Text style={styles.totalsLabel}>Tax</Text>
+              <Text style={styles.totalsValue}>{formatPrice(order.tax)}</Text>
+            </View>
+          )}
+          <View style={styles.totalsFinal}>
+            <Text style={styles.totalsFinalLabel}>Total</Text>
+            <Text style={styles.totalsFinalValue}>{formatPrice(order.total)}</Text>
+          </View>
+        </View>
       </Page>
     </Document>
   );

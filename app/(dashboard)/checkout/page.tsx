@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { formatPrice, NEW_CUSTOMER_MIN_ORDER, REPEAT_CUSTOMER_MIN_ORDER } from "@/lib/firebase-helpers";
+import { formatPrice, NEW_CUSTOMER_MIN_ORDER, REPEAT_CUSTOMER_MIN_ORDER, SHIPPING_FEE_CENTS } from "@/lib/firebase-helpers";
 import { AuthGuard } from "@/components/shared/AuthGuard";
 import { AddressForm } from "@/components/shared/AddressForm";
 import { Button } from "@/components/ui/button";
@@ -103,6 +103,7 @@ export default function CheckoutPage() {
           notes: notes || "",
           subtotal: cart.subtotal,
           discount: cart.discount,
+          shippingCost: SHIPPING_FEE_CENTS,
         }),
       });
 
@@ -365,13 +366,13 @@ export default function CheckoutPage() {
                 )}
                 <div className="flex justify-between text-muted-foreground">
                   <span>Shipping</span>
-                  <span>Free</span>
+                  <span>{formatPrice(SHIPPING_FEE_CENTS)}</span>
                 </div>
               </div>
               <div className="border-t mt-4 pt-4">
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span>{formatPrice(cart.subtotal - cart.discount)}</span>
+                  <span>{formatPrice(cart.subtotal + SHIPPING_FEE_CENTS - cart.discount)}</span>
                 </div>
               </div>
 

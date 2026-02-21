@@ -139,7 +139,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   );
 
   // Calculate total
-  const shippingCost = 0; // Free shipping
+  const shippingCost = checkoutData.shippingCost || 0;
   const tax = 0; // Tax calculation can be added
   const total = subtotal + shippingCost + tax - discount;
 

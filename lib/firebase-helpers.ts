@@ -139,6 +139,10 @@ export const NEW_CUSTOMER_MIN_ORDER = 15000; // $150.00
 /** Minimum order subtotal in cents for repeat customers (at least one delivered order) */
 export const REPEAT_CUSTOMER_MIN_ORDER = 10000; // $100.00
 
+/** Flat shipping fee in cents */
+export const SHIPPING_FEE_CENTS: number =
+  parseInt(process.env.NEXT_PUBLIC_SHIPPING_FEE_CENTS ?? "1500", 10) || 1500;
+
 // ============================================
 // Price Helpers
 // ============================================
