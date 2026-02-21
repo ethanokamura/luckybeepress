@@ -80,7 +80,12 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Orders</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Orders</h1>
+        <Link href="/admin/orders/new">
+          <Button>+ New Order</Button>
+        </Link>
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">

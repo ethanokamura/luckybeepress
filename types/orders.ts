@@ -22,7 +22,8 @@ export type PaymentMethod =
   | "paypal"
   | "apple_pay"
   | "google_pay"
-  | "cash_on_delivery";
+  | "cash_on_delivery"
+  | "net30";
 
 export interface OrderItem {
   productId: string;
@@ -94,6 +95,12 @@ export interface Order extends FirebaseDoc {
 
   // Admin notes (not visible to customer)
   adminNotes: string | null;
+
+  // Admin-created order metadata
+  adminCreated?: boolean;
+  createdBy?: string; // admin uid or email
+  paymentTerms?: "card" | "net30";
+  overrideReason?: string | null; // reason for bypassing order minimum
 
   // Timestamps
   paidAt: Timestamp | null;
