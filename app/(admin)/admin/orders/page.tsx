@@ -18,6 +18,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { printPackingSlips } from "@/lib/packing-slip";
+import { Printer } from "lucide-react";
 import type { Order, OrderStatus } from "@/types";
 import Image from "next/image";
 
@@ -38,6 +40,7 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState(initialStatus);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -63,7 +66,31 @@ export default function AdminOrdersPage() {
     };
 
     fetchOrders();
+    setSelectedIds(new Set());
   }, [statusFilter]);
+
+  const allSelected = orders.length > 0 && selectedIds.size === orders.length;
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(orders.map((o) => o.id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const handleBatchPrint = () => {
+    const selected = orders.filter((o) => selectedIds.has(o.id));
+    printPackingSlips(selected);
+  };
 
   if (loading) {
     return (
@@ -101,11 +128,36 @@ export default function AdminOrdersPage() {
         ))}
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between bg-primary text-primary-foreground px-4 py-3 rounded-lg">
+          <span className="text-sm font-medium">
+            {selectedIds.size} order{selectedIds.size !== 1 ? "s" : ""} selected
+          </span>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="gap-2"
+            onClick={handleBatchPrint}
+          >
+            <Printer className="h-4 w-4" />
+            Print Packing Slips
+          </Button>
+        </div>
+      )}
+
       {orders.length > 0 ? (
         <div className="bg-card border rounded-lg overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
+                <TableHead className="p-4 w-10">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={toggleSelectAll}
+                    className="cursor-pointer"
+                  />
+                </TableHead>
                 <TableHead className="p-4">Order</TableHead>
                 <TableHead className="p-4">Customer</TableHead>
                 <TableHead className="p-4">Date</TableHead>
@@ -118,8 +170,20 @@ export default function AdminOrdersPage() {
             <TableBody>
               {orders.map((order) => {
                 const createdAt = toDate(order.createdAt);
+                const isSelected = selectedIds.has(order.id);
                 return (
-                  <TableRow key={order.id} className="hover:bg-muted/30">
+                  <TableRow
+                    key={order.id}
+                    className={`hover:bg-muted/30 ${isSelected ? "bg-muted/20" : ""}`}
+                  >
+                    <TableCell className="p-4">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelect(order.id)}
+                        className="cursor-pointer"
+                      />
+                    </TableCell>
                     <TableCell className="p-4">
                       <p className="font-medium">{order.orderNumber}</p>
                       <p className="text-xs text-muted-foreground">

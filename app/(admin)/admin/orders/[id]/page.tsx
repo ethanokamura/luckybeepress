@@ -10,7 +10,8 @@ import {
   PaymentStatusBadge,
 } from "@/components/shared/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
+import { FileText, Printer } from "lucide-react";
+import { printPackingSlips } from "@/lib/packing-slip";
 import type { Order, OrderStatus, PaymentStatus } from "@/types";
 
 const orderStatuses: OrderStatus[] = [
@@ -274,14 +275,24 @@ export default function AdminOrderDetailPage() {
             <OrderStatusBadge status={order.status} />
             <PaymentStatusBadge status={order.paymentStatus} />
           </div>
-          <Button
-            onClick={handleDownloadInvoice}
-            variant="outline"
-            className="gap-2"
-          >
-            <FileText className="h-4 w-4" />
-            Download Invoice
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => printPackingSlips([order])}
+              variant="outline"
+              className="gap-2"
+            >
+              <Printer className="h-4 w-4" />
+              Print Packing Slip
+            </Button>
+            <Button
+              onClick={handleDownloadInvoice}
+              variant="outline"
+              className="gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              Download Invoice
+            </Button>
+          </div>
         </div>
       </div>
 
