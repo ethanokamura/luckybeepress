@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { formatPrice } from "@/lib/firebase-helpers";
+import { formatPrice, NEW_CUSTOMER_MIN_ORDER, REPEAT_CUSTOMER_MIN_ORDER } from "@/lib/firebase-helpers";
 import { AuthGuard } from "@/components/shared/AuthGuard";
 import { AddressForm } from "@/components/shared/AddressForm";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,11 @@ import type { Cart, OrderAddress } from "@/types";
 import Image from "next/image";
 import { Lock, CreditCard } from "lucide-react";
 
-const MINIMUM_ORDER_AMOUNT = 15000; // $150.00 in cents
-
 export default function CheckoutPage() {
-  const { firebaseUser } = useAuth();
+  const { firebaseUser, userData } = useAuth();
+  const minOrderAmount = userData?.isRepeatCustomer
+    ? REPEAT_CUSTOMER_MIN_ORDER
+    : NEW_CUSTOMER_MIN_ORDER;
   const router = useRouter();
 
   const [cart, setCart] = useState<Cart | null>(null);
@@ -76,10 +77,10 @@ export default function CheckoutPage() {
     if (!firebaseUser || !cart || !shippingAddress || !billingAddress) return;
 
     // Final check for minimum order amount
-    if (cart.subtotal < MINIMUM_ORDER_AMOUNT) {
+    if (cart.subtotal < minOrderAmount) {
       alert(
         `Minimum order amount is ${formatPrice(
-          MINIMUM_ORDER_AMOUNT
+          minOrderAmount
         )}. Please add more items to your cart.`
       );
       return;
@@ -160,7 +161,7 @@ export default function CheckoutPage() {
   }
 
   // Redirect to cart if subtotal is below minimum
-  if (cart.subtotal < MINIMUM_ORDER_AMOUNT) {
+  if (cart.subtotal < minOrderAmount) {
     return (
       <AuthGuard requireAuth requireApproval>
         <div className="max-w-7xl mx-auto text-center py-16">
@@ -173,10 +174,10 @@ export default function CheckoutPage() {
           />
           <h1 className="text-2xl font-bold mb-2">Minimum Order Not Met</h1>
           <p className="text-muted-foreground mb-6">
-            The minimum order amount is {formatPrice(MINIMUM_ORDER_AMOUNT)}.
+            The minimum order amount is {formatPrice(minOrderAmount)}.
             Your current cart total is {formatPrice(cart.subtotal)}.
             <br />
-            Please add {formatPrice(MINIMUM_ORDER_AMOUNT - cart.subtotal)} more
+            Please add {formatPrice(minOrderAmount - cart.subtotal)} more
             to proceed.
           </p>
           <Button onClick={() => router.push("/cart")}>Return to Cart</Button>

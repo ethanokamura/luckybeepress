@@ -129,6 +129,20 @@ export function toTimestamp(date: Date | null | undefined): Timestamp | null {
 // Price Helpers (cents <-> dollars)
 // ============================================
 
+// ============================================
+// Minimum Order Constants
+// ============================================
+
+/** Minimum order subtotal in cents for new (first-time) customers */
+export const NEW_CUSTOMER_MIN_ORDER = 15000; // $150.00
+
+/** Minimum order subtotal in cents for repeat customers (at least one delivered order) */
+export const REPEAT_CUSTOMER_MIN_ORDER = 10000; // $100.00
+
+// ============================================
+// Price Helpers
+// ============================================
+
 /** Convert cents to display price string */
 export function formatPrice(cents: number, currency = "USD"): string {
   return new Intl.NumberFormat("en-US", {

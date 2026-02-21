@@ -206,6 +206,18 @@ export default function AdminCustomerDetailPage() {
                   {customer.emailVerified ? "Yes" : "No"}
                 </p>
               </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Customer Type</p>
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                    customer.isRepeatCustomer
+                      ? "bg-green-100 text-green-800"
+                      : "bg-blue-100 text-blue-800"
+                  }`}
+                >
+                  {customer.isRepeatCustomer ? "Repeat Customer" : "New Customer"}
+                </span>
+              </div>
             </div>
           </div>
 

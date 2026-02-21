@@ -159,6 +159,7 @@ export default function AdminCustomersPage() {
                 <TableHead className="p-4">Phone</TableHead>
                 <TableHead className="p-4">Joined</TableHead>
                 <TableHead className="p-4">Status</TableHead>
+                <TableHead className="p-4">Type</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -200,6 +201,17 @@ export default function AdminCustomersPage() {
                         )}`}
                       >
                         {customer.accountStatus}
+                      </span>
+                    </TableCell>
+                    <TableCell className="p-4">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          customer.isRepeatCustomer
+                            ? "bg-green-100 text-green-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {customer.isRepeatCustomer ? "Repeat" : "New"}
                       </span>
                     </TableCell>
                     <TableCell className="p-4 text-right">

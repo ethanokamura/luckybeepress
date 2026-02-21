@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { doc, onSnapshot, updateDoc, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { formatPrice } from "@/lib/firebase-helpers";
+import { formatPrice, NEW_CUSTOMER_MIN_ORDER, REPEAT_CUSTOMER_MIN_ORDER } from "@/lib/firebase-helpers";
 import { AuthGuard } from "@/components/shared/AuthGuard";
 import { CartItemRow } from "@/components/shared/CartItemRow";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,11 @@ import { useAuth } from "@/context/AuthContext";
 import type { Cart, CartItem } from "@/types";
 import Image from "next/image";
 
-const MINIMUM_ORDER_AMOUNT = 15000; // $150.00 in cents
-
 export default function CartPage() {
-  const { firebaseUser } = useAuth();
+  const { firebaseUser, userData } = useAuth();
+  const minOrderAmount = userData?.isRepeatCustomer
+    ? REPEAT_CUSTOMER_MIN_ORDER
+    : NEW_CUSTOMER_MIN_ORDER;
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -161,23 +162,23 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                {cart.subtotal < MINIMUM_ORDER_AMOUNT && (
+                {cart.subtotal < minOrderAmount && (
                   <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
                     <p className="text-sm text-amber-800 dark:text-amber-200">
-                      Minimum order amount is {formatPrice(MINIMUM_ORDER_AMOUNT)}. 
-                      Add {formatPrice(MINIMUM_ORDER_AMOUNT - cart.subtotal)} more to checkout.
+                      Minimum order amount is {formatPrice(minOrderAmount)}. 
+                      Add {formatPrice(minOrderAmount - cart.subtotal)} more to checkout.
                     </p>
                   </div>
                 )}
 
                 <Link 
                   href="/checkout" 
-                  className={`block mt-6 ${cart.subtotal < MINIMUM_ORDER_AMOUNT ? 'pointer-events-none' : ''}`}
+                  className={`block mt-6 ${cart.subtotal < minOrderAmount ? 'pointer-events-none' : ''}`}
                 >
                   <Button 
                     className="w-full" 
                     size="lg"
-                    disabled={cart.subtotal < MINIMUM_ORDER_AMOUNT}
+                    disabled={cart.subtotal < minOrderAmount}
                   >
                     Proceed to Checkout
                   </Button>
