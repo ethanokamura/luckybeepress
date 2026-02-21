@@ -11,6 +11,7 @@ export interface User extends FirebaseDoc {
   defaultAddressId: string | null;
   emailVerified: boolean;
   accountStatus: "active" | "inactive" | "pending" | "suspended" | "deleted";
+  isRepeatCustomer?: boolean;
 }
 
 export type CreateUser = CreateDoc<User>;

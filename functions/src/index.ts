@@ -1,4 +1,4 @@
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { setGlobalOptions } from "firebase-functions/v2";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
@@ -10,6 +10,77 @@ const OWNER_EMAIL = "ethanokamura3@gmail.com";
 
 // Set global options for all functions
 setGlobalOptions({ region: "us-central1" });
+
+/**
+ * Trigger: When an order document is updated in Firestore
+ * Grants or revokes repeat customer status based on order status transitions.
+ * - status → "delivered": sets isRepeatCustomer: true on the user
+ * - status → "refunded": re-evaluates; sets isRepeatCustomer: false if no other delivered orders remain
+ */
+export const onOrderUpdated = onDocumentUpdated(
+  "orders/{orderId}",
+  async (event) => {
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+
+    if (!before || !after || !after.userId) return;
+
+    // Order delivered for the first time: grant repeat customer status
+    if (before.status !== "delivered" && after.status === "delivered") {
+      try {
+        await db.collection("users").doc(after.userId).update({
+          isRepeatCustomer: true,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        logger.info("User granted repeat customer status", {
+          userId: after.userId,
+          orderId: event.params.orderId,
+        });
+      } catch (error) {
+        logger.error("Failed to grant repeat customer status", {
+          userId: after.userId,
+          error,
+        });
+      }
+      return;
+    }
+
+    // Order fully refunded: re-evaluate whether user still qualifies
+    if (before.status !== "refunded" && after.status === "refunded") {
+      try {
+        const remainingDelivered = await db
+          .collection("orders")
+          .where("userId", "==", after.userId)
+          .where("status", "==", "delivered")
+          .get();
+
+        if (remainingDelivered.empty) {
+          await db.collection("users").doc(after.userId).update({
+            isRepeatCustomer: false,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+          logger.info("User repeat customer status revoked", {
+            userId: after.userId,
+            orderId: event.params.orderId,
+          });
+        } else {
+          logger.info(
+            "User retains repeat customer status (other delivered orders exist)",
+            {
+              userId: after.userId,
+              remainingCount: remainingDelivered.size,
+            }
+          );
+        }
+      } catch (error) {
+        logger.error("Failed to re-evaluate repeat customer status", {
+          userId: after.userId,
+          error,
+        });
+      }
+    }
+  }
+);
 
 /**
  * Trigger: When a new user document is created in Firestore
