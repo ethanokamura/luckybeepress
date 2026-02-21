@@ -27,6 +27,7 @@ import {
   Package,
   Mail,
   Users,
+  Tag,
 } from "lucide-react";
 
 interface AdminSidebarContentProps {
@@ -87,6 +88,7 @@ function AdminSidebarContent({ onNavigate }: AdminSidebarContentProps) {
     { href: "/admin", label: "Dashboard", icon: LineChart },
     { href: "/admin/orders", label: "Orders", icon: Package },
     { href: "/admin/products", label: "Products", icon: Mail },
+    { href: "/admin/categories", label: "Categories", icon: Tag },
     { href: "/admin/customers", label: "Customers", icon: Users },
   ];
 

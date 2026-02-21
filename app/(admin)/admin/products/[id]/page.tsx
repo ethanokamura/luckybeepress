@@ -5,38 +5,17 @@ import { useParams, useRouter } from "next/navigation";
 import { getDoc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
 import { docs, toCents, toDollars, generateSlug } from "@/lib/firebase-helpers";
 import { Button } from "@/components/ui/button";
-import { BOX_SET_CATEGORIES, WHOLESALE_PRICING } from "@/types/products";
+import { WHOLESALE_PRICING } from "@/types/products";
+import { useCategories, DEFAULT_CATEGORIES } from "@/hooks/useCategories";
 import type { Product, ProductStatus } from "@/types";
 import Image from "next/image";
-
-const categories = [
-  "Birthday",
-  "Thank You",
-  "Holiday",
-  "Christmas",
-  "Hanukkah",
-  "Season's Greetings",
-  "New Year's",
-  "Valentine's Day",
-  "Love",
-  "Sympathy",
-  "Congratulations",
-  "Baby",
-  "Wedding",
-  "Graduation",
-  "Mother's Day",
-  "Father's Day",
-  "Rosh Hashanah",
-  "Easter",
-  "Everyday",
-  "Blank",
-  "Other",
-];
 
 export default function EditProductPage() {
   const params = useParams();
   const router = useRouter();
   const productId = params.id as string;
+  const { categories: categoryList } = useCategories();
+  const categoryOptions = categoryList.length > 0 ? categoryList : DEFAULT_CATEGORIES;
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -124,9 +103,8 @@ export default function EditProductPage() {
     });
   };
 
-  const canHaveBoxSet = (BOX_SET_CATEGORIES as readonly string[]).includes(
-    formData.category
-  );
+  const canHaveBoxSet =
+    categoryOptions.find((c) => c.name === formData.category)?.supportsBoxSet ?? false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -290,9 +268,9 @@ export default function EditProductPage() {
                 onChange={handleChange}
                 className="w-full px-4 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
+                {categoryOptions.map((cat) => (
+                  <option key={cat.name} value={cat.name}>
+                    {cat.name}
                   </option>
                 ))}
               </select>

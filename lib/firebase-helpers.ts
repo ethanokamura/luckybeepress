@@ -16,6 +16,7 @@ import type {
   Cart,
   Address,
   ContactMessage,
+  Category,
   FirebaseDoc,
 } from "@/types";
 
@@ -59,6 +60,7 @@ export const orderConverter = createConverter<Order>();
 export const cartConverter = createConverter<Cart>();
 export const addressConverter = createConverter<Address>();
 export const contactConverter = createConverter<ContactMessage>();
+export const categoryConverter = createConverter<Category>();
 
 // ============================================
 // Typed Collection References
@@ -70,6 +72,7 @@ export const collections = {
   orders: collection(db, "orders").withConverter(orderConverter),
   carts: collection(db, "carts").withConverter(cartConverter),
   contacts: collection(db, "contacts").withConverter(contactConverter),
+  categories: collection(db, "categories").withConverter(categoryConverter),
 
   // Addresses are a subcollection of users
   addresses: (userId: string) =>
@@ -90,6 +93,8 @@ export const docs = {
   cart: (id: string) => doc(db, "carts", id).withConverter(cartConverter),
   contact: (id: string) =>
     doc(db, "contacts", id).withConverter(contactConverter),
+  category: (id: string) =>
+    doc(db, "categories", id).withConverter(categoryConverter),
   address: (userId: string, addressId: string) =>
     doc(db, "users", userId, "addresses", addressId).withConverter(
       addressConverter

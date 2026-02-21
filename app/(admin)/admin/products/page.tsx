@@ -15,6 +15,7 @@ import {
   OrderByDirection,
 } from "firebase/firestore";
 import { collections, formatPrice } from "@/lib/firebase-helpers";
+import { DEFAULT_CATEGORIES } from "@/hooks/useCategories";
 import { searchProducts, AlgoliaProductHit } from "@/lib/algolia";
 import {
   Table,
@@ -105,23 +106,31 @@ export default function AdminProductsPage() {
   const totalPages = Math.ceil(totalProducts / PRODUCTS_PER_PAGE);
   const isSearchMode = searchQuery.trim().length > 0;
 
-  // Fetch distinct categories from products collection (once on mount)
+  // Fetch categories in display order from categories collection
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const q = query(collections.products, where("status", "==", "active"));
-        const snapshot = await getDocs(q);
-        const categorySet = new Set<string>();
-        snapshot.docs.forEach((doc) => {
-          const category = doc.data().category;
-          if (category) {
-            categorySet.add(category);
-          }
-        });
-        const sortedCategories = Array.from(categorySet).sort((a, b) =>
-          a.localeCompare(b)
+        const snap = await getDocs(
+          query(collections.categories, orderBy("order", "asc"))
         );
-        setCategories(["All", ...sortedCategories]);
+        if (!snap.empty) {
+          setCategories(["All", ...snap.docs.map((d) => d.data().name as string)]);
+        } else {
+          // Fallback: scan active products
+          const pSnap = await getDocs(
+            query(collections.products, where("status", "==", "active"))
+          );
+          const categorySet = new Set<string>();
+          pSnap.docs.forEach((d) => {
+            const category = d.data().category;
+            if (category) categorySet.add(category);
+          });
+          if (categorySet.size > 0) {
+            setCategories(["All", ...Array.from(categorySet).sort((a, b) => a.localeCompare(b))]);
+          } else {
+            setCategories(["All", ...DEFAULT_CATEGORIES.map((c) => c.name)]);
+          }
+        }
       } catch (error) {
         console.error("Error fetching categories:", error);
       }

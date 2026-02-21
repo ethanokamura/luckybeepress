@@ -6,35 +6,14 @@ import { doc, setDoc, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { generateSlug, toCents } from "@/lib/firebase-helpers";
 import { Button } from "@/components/ui/button";
-import { BOX_SET_CATEGORIES, WHOLESALE_PRICING } from "@/types/products";
+import { WHOLESALE_PRICING } from "@/types/products";
+import { useCategories, DEFAULT_CATEGORIES } from "@/hooks/useCategories";
 import type { Product, ProductStatus } from "@/types";
-
-const categories = [
-  "Birthday",
-  "Thank You",
-  "Holiday",
-  "Christmas",
-  "Hanukkah",
-  "Season's Greetings",
-  "New Year's",
-  "Valentine's Day",
-  "Love",
-  "Sympathy",
-  "Congratulations",
-  "Baby",
-  "Wedding",
-  "Graduation",
-  "Mother's Day",
-  "Father's Day",
-  "Rosh Hashanah",
-  "Easter",
-  "Everyday",
-  "Blank",
-  "Other",
-];
 
 export default function NewProductPage() {
   const router = useRouter();
+  const { categories: categoryList } = useCategories();
+  const categoryOptions = categoryList.length > 0 ? categoryList : DEFAULT_CATEGORIES;
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -72,9 +51,8 @@ export default function NewProductPage() {
   };
 
   // Check if current category supports box sets
-  const canHaveBoxSet = (BOX_SET_CATEGORIES as readonly string[]).includes(
-    formData.category
-  );
+  const canHaveBoxSet =
+    categoryOptions.find((c) => c.name === formData.category)?.supportsBoxSet ?? false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,9 +190,9 @@ export default function NewProductPage() {
                 onChange={handleChange}
                 className="w-full px-4 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
+                {categoryOptions.map((cat) => (
+                  <option key={cat.name} value={cat.name}>
+                    {cat.name}
                   </option>
                 ))}
               </select>

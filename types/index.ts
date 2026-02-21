@@ -6,3 +6,4 @@ export * from "./addresses";
 export * from "./contact";
 export * from "./base_types";
 export * from "./queries";
+export * from "./categories";
